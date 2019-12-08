@@ -1,4 +1,6 @@
 
+.include "telestrat.inc"
+
 .export _read_eeprom_manufacturer
 .export _twil_fetch_set
 
@@ -10,28 +12,59 @@
 	rts
 .endproc
 
+.proc enter
+.endproc
+
+.proc exit
+.endproc
+
+
 .proc _read_eeprom_manufacturer
-	php
 	sei
-	jsr	_program_eeprom
+	php
+    lda  VIA2::PRA   
+	sta	 save
+	lda  $343
+	sta  twilighte_banking_register_save
+
+	lda  $342
+	sta  twilighte_register_save
+	
+
+	;jsr	_program_eeprom
 	lda #$90
 	jsr sequence
-	lda $C000
+	lda $C000 ; manufacturer
 	sta tmp
-	lda $C001
+	;sta $5000
+
+	lda $C001 ; device ID
 	sta tmp+1
+	;sta $5001
+
 	lda #$F0
 	sta $C000
-	jsr _activate_eeprom
-	lda tmp
-	ldy tmp+1
 	
+	;jsr _activate_eeprom
+
+
+    lda  save
+	sta	 VIA2::PRA 
+	lda  twilighte_banking_register_save
+	sta  $343
+	lda  twilighte_register_save
+	sta  $342
+	
+	lda tmp ; manufacturer
+	ldx tmp+1 ; 
+
 	plp
 	cli	
 
 	rts
 tmp:
 	.res 2	
+
 .endproc
 
 .proc _program_eeprom
@@ -49,20 +82,50 @@ tmp:
 .endproc
 
 
-.proc sequence
-	pha
-	;jsr select_bank
-	lda #$AA
-	sta $C555
-
-	lda #$55
-	sta $C2AA
-
-	pla
-	sta $C555
-	rts
+.proc select_bank
+  
+  sta	VIA2::PRA
+  rts
 .endproc
 
+
+.proc sequence
+	pha
+	lda	 #00
+	sta	 $343
+	; $5555 
+	lda #1
+	jsr select_bank
+	
+	lda #$AA
+	sta $D555
+
+	; $2AAA
+	lda	 #04
+	sta	 $343
+
+	lda #4
+	jsr select_bank
+	
+	lda #$55
+	sta $EAAA
+
+	; $5555
+	lda	 #00
+	sta	 $343
+
+	lda #1
+	jsr select_bank
+	pla
+	sta $D555
+	rts
+.endproc
+save:
+    .res 1	
+twilighte_banking_register_save:
+    .res 1		
+twilighte_register_save:
+    .res 1		
 
     ; Device ID
 ;    lda     #$AA
