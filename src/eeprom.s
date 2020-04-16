@@ -26,7 +26,7 @@
 nb_bytes_read:=tmp3
 
 twilighte_banking_register := $343
-twilighte_register := $342
+twilighte_register         := $342
 
 .proc _program_kernel
 	sei
@@ -180,9 +180,9 @@ start:
     bne		@loop
  @finished:
 	jsr		restore_twil_registers
+
 	lda		#$00
 	cli
-	;orix.r64
 	rts
 str_rom:	
 	.asciiz "kernelsd.r64"
@@ -232,72 +232,73 @@ wait_write:
 
 
 .proc	save_twil_registers
-    lda  VIA2::PRA   
-	sta	 save
-	lda  twilighte_banking_register
-	sta  twilighte_banking_register_save
+    lda		VIA2::PRA   
+	sta		save
+	lda		twilighte_banking_register
+	sta		twilighte_banking_register_save
 
-	lda  $342
-	sta  twilighte_register_save
+	lda		twilighte_register
+	sta		twilighte_register_save
     rts
 .endproc	
 
 .proc	restore_twil_registers
-    lda  save
-	sta	 VIA2::PRA 
-	lda  twilighte_banking_register_save
-	sta  twilighte_banking_register
-	lda  twilighte_register_save
-	sta  $342
+    lda		save
+	sta		VIA2::PRA 
+	lda		twilighte_banking_register_save
+	sta		twilighte_banking_register
+	lda		twilighte_register_save
+	sta		twilighte_register
 	rts
 .endproc
 
 
 .proc _kernupd_change_set
-    sta twilighte_banking_register
+    sta		twilighte_banking_register
 .endproc
 
 .proc  _twil_fetch_set
-    lda	twilighte_banking_register
-	ldx	#$00
+    lda		twilighte_banking_register
+	ldx		#$00
 	rts
 .endproc
 
 .proc _read_eeprom_manufacturer
 	sei
 	php
-    lda  VIA2::PRA   
-	sta	 save
+    lda		VIA2::PRA   
+	sta		save
 
 
-	lda  twilighte_banking_register
-	sta  twilighte_banking_register_save
+	lda		twilighte_banking_register
+	sta		twilighte_banking_register_save
 
-	lda  $342
-	sta  twilighte_register_save
+	lda		twilighte_register
+	sta		twilighte_register_save
 	
 
 	;jsr	_program_eeprom
-	lda #$90
-	jsr sequence
-	lda $C000 ; manufacturer
-	sta tmp
+	lda		#$90
+	jsr		sequence
+	lda		$C000 ; manufacturer
+	sta		tmp
 
-	lda $C001 ; device ID
-	sta tmp+1
-
-	lda #$F0
-	sta $C000
-
-    lda  save
-	sta	 VIA2::PRA 
-	lda  twilighte_banking_register_save
-	sta  $343
-	lda  twilighte_register_save
-	sta  $342
+	lda		$C001 ; device ID
+	sta		tmp+1
 	
-	lda tmp ; manufacturer
-	ldx tmp+1 ; 
+	; Reset eeprom autoselect
+	lda		#$F0
+	sta		$C000
+
+    lda		save
+	sta		VIA2::PRA 
+	lda		twilighte_banking_register_save
+	sta		twilighte_banking_register
+	lda		twilighte_register_save
+	sta		twilighte_register
+	
+	lda		tmp ; manufacturer
+	ldx		tmp+1 ; 
 
 	plp
 	cli	
@@ -309,16 +310,16 @@ tmp:
 .endproc
 
 .proc _program_eeprom
-    lda     $342
+    lda     twilighte_register
     and     #%00000000
-    sta     $342
+    sta     twilighte_register
 	rts
 .endproc
 
 .proc _activate_eeprom
-    lda     $342
+    lda     twilighte_register
     ora     #%10000000
-    sta     $342
+    sta     twilighte_register
     rts
 .endproc
 
@@ -332,33 +333,33 @@ tmp:
 
 .proc sequence
 	pha
-	lda	 #$00
-	sta	 twilighte_banking_register
+	lda		#$00
+	sta		twilighte_banking_register
 	; $5555 
-	lda #$01
-	jsr select_bank
+	lda		#$01
+	jsr		select_bank
 	
-	lda #$AA
-	sta $D555
+	lda		#$AA
+	sta		$D555
 
 	; $2AAA
-	lda	 #04
-	sta	 twilighte_banking_register
+	lda		#04
+	sta		twilighte_banking_register
 
-	lda #4
-	jsr select_bank
+	lda		#$04
+	jsr		select_bank
 	
-	lda #$55
-	sta $EAAA
+	lda		#$55
+	sta		$EAAA
 
 	; $5555
-	lda	 #00
-	sta	 twilighte_banking_register
+	lda		#$00
+	sta		twilighte_banking_register
 
-	lda #1
-	jsr select_bank
+	lda		#$01
+	jsr		select_bank
 	pla
-	sta $D555
+	sta		$D555
 	rts
 .endproc
 
