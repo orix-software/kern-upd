@@ -38,10 +38,9 @@ twilighte_register := $342
 	
 	lda  	#$03 ; pour debug FIXME, cela devrait être à 4
 	sta  	twilighte_banking_register
+
 	lda		twilighte_register
-	
 	and		#%11011111
-	
 	sta		twilighte_register
 
 	lda		#$01
@@ -344,7 +343,7 @@ tmp:
 
 	; $2AAA
 	lda	 #04
-	sta	 $343
+	sta	 twilighte_banking_register
 
 	lda #4
 	jsr select_bank
@@ -354,7 +353,7 @@ tmp:
 
 	; $5555
 	lda	 #00
-	sta	 $343
+	sta	 twilighte_banking_register
 
 	lda #1
 	jsr select_bank
