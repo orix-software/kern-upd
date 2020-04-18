@@ -5,17 +5,13 @@
 #define TRUE -1
 #define FALSE 0
 
-extern  unsigned char program_kernel();
+extern  unsigned char program_sector(unsigned char *file, unsigned char sector);
+
+extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank);
 
 extern unsigned int read_eeprom_manufacturer();
 
 extern  unsigned char twil_fetch_set();
-
-extern unsigned char kernupd_change_set();
-
-extern unsigned char loadAndProgram(unsigned char *filename,unsigned int length);
-
-extern unsigned char write_flash();
 
 int get_bank() {
 	int b=0;
@@ -58,7 +54,7 @@ int main() {
 		//printf("l. Load file\n");
 		//printf("s. Save file\n");
 		printf("\n");
-		//printf("w. Write bank : %s\n",filenametoload);
+		//printf("w. Write ram bank\n");
 		//printf("r. Read bank \n");
 		//printf("v. Verify bank\n");
 		//printf("f. Change set of 64KB\n");
@@ -87,7 +83,19 @@ int main() {
 					default: printf("(unknown)\n"); break;
 				}
 				break;
+				/*
+			case 'w':
+				status=program_bank_ram("monitor.rom",1);
+				if (status==0) {
+					printf("File not found : monitor.rom");
+					break;
 
+				}
+				status=program_bank_ram("monitor.rom",2);
+				status=program_bank_ram("monitor.rom",3);
+				status=program_bank_ram("monitor.rom",4);
+				break;
+				*/
 			// case 'l':
 			// 	i=0;
 			// 	strcpy(filenametoload,"");
@@ -127,12 +135,14 @@ int main() {
 
 
 			case    'p':
-				clrscr();
-				printf("orix.r64 must be present at the root of the sdcard.\n\n");
+				printf("kernelsd.r64 must be present at the root of the sdcard.\n\n");
 				printf("Confirm programmation of the kernel (don't stop the oric until it finished): Y/n\n");
 			    choice=cgetc();
 				if (choice=='Y') {
-					status=program_kernel();
+					clrscr();
+					cputsxy(0,0,"Offset :");
+					cputsxy(20,0,"Bank :");
+					status=program_sector("kernelsd.r64",0);
 					if (status==1)
 						printf("Can't open /kernelsd.r64\n");
 					else 
