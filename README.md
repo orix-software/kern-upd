@@ -1,1 +1,1 @@
-Software to update EEPROM
+Software to update EEPROM for Twilighte card.

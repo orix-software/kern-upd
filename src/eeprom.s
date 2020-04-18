@@ -18,7 +18,6 @@
 .export _check_flash_protection
 
 .export _read_eeprom_manufacturer
-.export _twil_fetch_set
 
 
 .export _program_sector
@@ -123,8 +122,6 @@ twilighte_register         := $342
 .endproc
 
 
-idbank:	
-	.res 1	
 
 .proc _open_and_read_file
 	sta		ptr1
@@ -255,15 +252,11 @@ start:
 	lda		#'1'
 	sta     value_to_display
 
-
-
 	lda		#$00
 	sta		ptr3
 
 	lda		#$C0
 	sta		ptr3+1	
-
-
 
     lda		#$FF
     tay
@@ -279,10 +272,10 @@ start:
 	sta		tmp1
     ; Tester si userzp == 0?
 
-	lda		sector_to_update
+	lda		current_bank
 	clc
-    adc		#$41
-	sta     $bb80+35
+    adc		#$30
+	sta     $bb80+21
 
 
   @read_byte:
@@ -472,19 +465,11 @@ _cputhex8_custom:
 .endproc
 
 
-
-.proc  _twil_fetch_set
-    lda		twilighte_banking_register
-	ldx		#$00
-	rts
-.endproc
-
 .proc _read_eeprom_manufacturer
 	sei
 	php
     lda		VIA2::PRA   
 	sta		save
-
 
 	lda		twilighte_banking_register
 	sta		twilighte_banking_register_save
@@ -493,9 +478,6 @@ _cputhex8_custom:
 	sta		twilighte_register_save
 	
 
-
-
-	;jsr	_program_eeprom
 	lda     #$90
 	jsr     sequence
 	lda     $C000 ; manufacturer
@@ -541,12 +523,10 @@ tmp:
     rts
 .endproc
 
-
 .proc select_bank
    sta	VIA2::PRA
   rts
 .endproc
-
 
 .proc sequence
 	pha
@@ -606,8 +586,6 @@ wait_erase:
 .endproc
 
 
-
-
 ; unsigned int check_flash_protection(unsigned char sector)
 .proc _check_flash_protection
 	php
@@ -637,10 +615,10 @@ twilighte_banking_register_save:
     .res 1		
 twilighte_register_save:
     .res 1		
-default_string:
-    .asciiz "empty.r64"
 sector_to_update:
-.res	1
+	.res	1
 value_to_display:
 	.res 1
+idbank:	
+	.res 1	
 

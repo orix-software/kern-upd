@@ -16,12 +16,12 @@ SET MYDATE=%mydate% %mytime%
 echo %MYDATE%
 
 
-%CC65%\cl65 -ttelestrat src\kern-upd.c src\eeprom.s src\loadfile.s  -o kernupd
+%CC65%\cl65 -ttelestrat src\kern-upd.c src\eeprom.s src\loadfile.s  -o orixcfg
 
 IF "%1"=="NORUN" GOTO End
-mkdir %ORICUTRON%\usbdrive\usr\share\kernupd
+mkdir %ORICUTRON%\usbdrive\usr\share\orixcfg
 
-copy kernupd %ORICUTRON%\sdcard\bin\a > NUL
+copy orixcfg %ORICUTRON%\sdcard\bin\a > NUL
 
 cd %ORICUTRON%
 oricutron -mt 

@@ -2,7 +2,7 @@ AS=xa
 CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
-PROGRAM=kernelup
+PROGRAM=orixcfg
 LDFILES=src/eeprom.s
 
 
