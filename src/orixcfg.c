@@ -9,7 +9,7 @@ extern  unsigned char program_sector(unsigned char *file, unsigned char sector);
 
 extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank, unsigned char bank64id);
 
-extern unsigned int read_eeprom_manufacturer();
+extern unsigned int read_eeprom_manufacturer(unsigned char sector);
 
 int get_bank() {
 	int b=0;
@@ -56,7 +56,7 @@ int main() {
 		printf("\n\n");
 		switch(choice) {
 			case 'i':
-				status=read_eeprom_manufacturer();
+				status=read_eeprom_manufacturer(0);
 				device_code=status>>8;
 				manufacturer_code=status&0xFF;
 				switch (manufacturer_code) {
@@ -96,7 +96,7 @@ int main() {
 					clrscr();
 					cputsxy(0,0,"Offset :");
 					cputsxy(14,0,"Bank :");
-					status=program_sector("kernelsd.r64",0);
+					status=program_sector("kernelsd.r64",4);
 					if (status==1)
 						cputsxy(20,20,"Can't open /kernelsd.r64");
 
@@ -117,6 +117,26 @@ int main() {
 					cputsxy(0,0,"Offset :");
 					cputsxy(14,0,"Bank :");
 					status=program_sector("bank4321.r64",0);
+					if (status==1)
+						cputsxy(20,20,"Can't open /bank4321.r64");
+
+					else 
+						cputsxy(20,20,"Finished");
+				
+
+			    choice=cgetc();						
+				}
+				break;
+
+			case    't':
+				printf("bank4321.r64 must be present in sdcard root folder.\n\n");
+				printf("Confirm programmation (don't stop the oric until it finished): Y/n\n");
+			    choice=cgetc();
+				if (choice=='Y') {
+					clrscr();
+					cputsxy(0,0,"Offset :");
+					cputsxy(14,0,"Bank :");
+					status=program_sector("bank4321.r64",1);
 					if (status==1)
 						cputsxy(20,20,"Can't open /bank4321.r64");
 

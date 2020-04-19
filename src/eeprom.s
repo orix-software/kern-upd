@@ -254,6 +254,8 @@ start:
 
 	; Erase 
 	lda		sector_to_update
+	sta  	twilighte_banking_register
+	
 	jsr	    _erase_sector
 
 	lda		#'1'
@@ -475,6 +477,8 @@ _cputhex8_custom:
 .proc _read_eeprom_manufacturer
 	sei
 	php
+	sta		sector_to_update
+
     lda		VIA2::PRA   
 	sta		save
 
@@ -537,7 +541,7 @@ tmp:
 
 .proc sequence
 	pha
-	lda		#$00
+	lda		sector_to_update
 	sta		twilighte_banking_register ; Set to the first 64KB bank
 	; $5555 
 	lda     #$01					   ; set first bank
@@ -546,9 +550,6 @@ tmp:
 	lda		#$AA
 	sta		$D555					; $5555
 
-	; $2AAA
-	lda		#04
-	sta		twilighte_banking_register
 
 	lda		#$04
 	jsr		select_bank
@@ -556,9 +557,7 @@ tmp:
 	lda		#$55
 	sta		$EAAA                  ; $2AAA
 
-	; $5555
-	lda		#$00
-	sta		twilighte_banking_register
+
 
 	lda		#$01
 	jsr		select_bank          ;$5555
