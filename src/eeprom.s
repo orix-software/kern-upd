@@ -24,7 +24,7 @@
 
 .importzp ptr1,ptr2,ptr3
 
-.import popax
+.import popax,popa
 .importzp tmp1,tmp2,tmp3
 
 
@@ -32,6 +32,8 @@ twilighte_banking_register := $343
 twilighte_register         := $342
 
 .proc _program_bank_ram
+	sta		sector_to_update
+	jsr 	popa
 	sta		idbank
 	jsr		popax
 
@@ -48,6 +50,12 @@ twilighte_register         := $342
 	lda		twilighte_register
 	ora		#%00100000
 	sta		twilighte_register
+
+	lda		sector_to_update
+	sta     twilighte_banking_register
+
+	lda		idbank
+	sta		select_bank
 
 	lda		#$00
 	sta		ptr3
@@ -73,8 +81,7 @@ twilighte_register         := $342
 	
     lda		CH376_DATA
 
-	ldx		idbank
-	stx		select_bank
+
 
 	ldy		#$00
 	sta		(ptr3),y

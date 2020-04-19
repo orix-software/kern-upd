@@ -7,7 +7,7 @@
 
 extern  unsigned char program_sector(unsigned char *file, unsigned char sector);
 
-extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank);
+extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank, unsigned char bank64id);
 
 extern unsigned int read_eeprom_manufacturer();
 
@@ -47,6 +47,10 @@ int main() {
 		printf("\n");
 		printf("p. Program Kernel, Shell and basic11 banks\n");
 		printf("\n");
+		printf("x. Program 4,3,2,1 banks\n");
+		printf("\n");
+		printf("w. load a bank into ram\n");
+		printf("\n");
 		printf("q. Quit\n\n");
 		choice=cgetc();
 		printf("\n\n");
@@ -70,19 +74,19 @@ int main() {
 					default: printf("(unknown)\n"); break;
 				}
 				break;
-				/*
+				
 			case 'w':
-				status=program_bank_ram("monitor.rom",1);
-				if (status==0) {
+				status=program_bank_ram("monitor.rom",1,0);
+				if (status==1) {
 					printf("File not found : monitor.rom");
 					break;
 
 				}
-				status=program_bank_ram("monitor.rom",2);
-				status=program_bank_ram("monitor.rom",3);
-				status=program_bank_ram("monitor.rom",4);
+				status=program_bank_ram("monitor.rom",2,0);
+				status=program_bank_ram("monitor.rom",3,0);
+				status=program_bank_ram("monitor.rom",4,0);
 				break;
-				*/
+				
 
 			case    'p':
 				printf("kernelsd.r64 must be present in sdcard root folder.\n\n");
@@ -95,6 +99,26 @@ int main() {
 					status=program_sector("kernelsd.r64",0);
 					if (status==1)
 						cputsxy(20,20,"Can't open /kernelsd.r64");
+
+					else 
+						cputsxy(20,20,"Finished");
+				
+
+			    choice=cgetc();						
+				}
+				break;
+
+			case    'x':
+				printf("bank4321.r64 must be present in sdcard root folder.\n\n");
+				printf("Confirm programmation (don't stop the oric until it finished): Y/n\n");
+			    choice=cgetc();
+				if (choice=='Y') {
+					clrscr();
+					cputsxy(0,0,"Offset :");
+					cputsxy(14,0,"Bank :");
+					status=program_sector("bank4321.r64",0);
+					if (status==1)
+						cputsxy(20,20,"Can't open /bank4321.r64");
 
 					else 
 						cputsxy(20,20,"Finished");
