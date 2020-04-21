@@ -19,7 +19,6 @@
 
 .export _read_eeprom_manufacturer
 
-
 .export _program_sector
 
 .importzp ptr1,ptr2,ptr3
@@ -47,15 +46,16 @@ twilighte_register         := $342
 	
 
 	sei
+
 	lda		twilighte_register
 	ora		#%00100000
 	sta		twilighte_register
 
-	lda		sector_to_update
+	lda		#$00
 	sta     twilighte_banking_register
 
 	lda		idbank
-	sta		select_bank
+	jsr		select_bank
 
 	lda		#$00
 	sta		ptr3
@@ -81,6 +81,16 @@ twilighte_register         := $342
 	
     lda		CH376_DATA
 
+	pha
+	
+	lda     #'#'
+	jsr     _cputc_custom
+
+	lda		ptr3
+	ldx		ptr3+1
+	jsr		_cputhex16_custom
+
+	pla
 
 
 	ldy		#$00
@@ -89,6 +99,8 @@ twilighte_register         := $342
 	bne		@no_inc
 	inc		ptr3+1
 @no_inc:	
+	
+
 	
 
 	lda		ptr3+1
@@ -255,7 +267,7 @@ start:
 	; Erase 
 	lda		sector_to_update
 	sta  	twilighte_banking_register
-	
+
 	jsr	    _erase_sector
 
 	lda		#'1'

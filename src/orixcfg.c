@@ -7,7 +7,7 @@
 
 extern  unsigned char program_sector(unsigned char *file, unsigned char sector);
 
-extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank, unsigned char bank64id);
+extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank, unsigned char bank64id);
 
 extern unsigned int read_eeprom_manufacturer(unsigned char sector);
 
@@ -49,8 +49,8 @@ int main() {
 		printf("\n");
 		printf("x. Program 4,3,2,1 banks\n");
 		printf("\n");
-		printf("w. load a bank into ram\n");
-		printf("\n");
+		//printf("w. load a bank into ram\n");
+		//printf("\n");
 		printf("q. Quit\n\n");
 		choice=cgetc();
 		printf("\n\n");
