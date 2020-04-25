@@ -37,7 +37,7 @@ int main() {
 		bgcolor(COLOR_BLUE);
 		textcolor(COLOR_WHITE);
 		cputsxy(1,1,"+-------------------------------------+");
-		cputsxy(1,2,"|          Orixcfg v2020.1            | ");
+		cputsxy(1,2,"|          Orixcfg v2020.1            |");
 		cputsxy(1,3,"+-------------------------------------+");
 		
 		bgcolor(COLOR_BLACK);
