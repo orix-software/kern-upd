@@ -46,9 +46,7 @@ test:
 	filepack  $(ORIX_ROM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).pkg ${hash} 6502 pkg alpha
 	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 6502 tgz alpha
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).pkg ${hash} 65c02 pkg alpha
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 65c02 tgz alpha
+
   
   
