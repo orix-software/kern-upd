@@ -13,6 +13,16 @@ HOMEDIR=/home/travis/bin/
 
 SOURCE=src/$(PROGRAM).c
 
+
+ifdef $(TRAVIS_BRANCH)
+ifneq ($(TRAVIS_BRANCH), master)
+RELEASE=alpha
+endif
+else
+RELEASE:=$(shell cat VERSION)
+endif
+
+
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
