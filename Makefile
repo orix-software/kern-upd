@@ -16,11 +16,12 @@ SOURCE=src/$(PROGRAM).c
 
 ifdef $(TRAVIS_BRANCH)
 ifneq ($(TRAVIS_BRANCH), master)
-RELEASE=alpha
-endif
+RELEASE:=alpha
 else
 RELEASE:=$(shell cat VERSION)
 endif
+endif
+
 
 
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
