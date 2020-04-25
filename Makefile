@@ -10,7 +10,7 @@ ifdef $(TRAVIS_BRANCH)
 ifeq ($(TRAVIS_BRANCH), master)
 RELEASE:=$(shell cat VERSION)
 else
-RELEASE:=alpha
+RELEASE=alpha
 endif
 endif
 
@@ -26,7 +26,6 @@ MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
 	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES)
-  
 
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
@@ -44,10 +43,10 @@ test:
 	mkdir -p build/bin/$(PROGRAM)/
 	cp $(PROGRAM) build/bin/$(PROGRAM)/
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
-	filepack  $(ORIX_ROM).tar $(PROGRAM).pkg
+	filepack  $(PROGRAM.tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 6502 tgz $(RELEASE)
+	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz $(RELEASE)
 
   
   
