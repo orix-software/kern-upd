@@ -3,7 +3,7 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/eeprom.s
+LDFILES=src/eeprom.s src/_display_signature_bank.s src\loadfile.s 
 
 
 ifdef $(TRAVIS_BRANCH)
