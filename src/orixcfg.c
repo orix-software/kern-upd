@@ -11,6 +11,8 @@ extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank,
 
 extern unsigned int read_eeprom_manufacturer(unsigned char sector);
 
+extern unsigned char * display_signature_bank(unsigned char sector,unsigned char bank);
+
 int get_bank() {
 	int b=0;
 	while (b<1 || b>4) {
@@ -21,6 +23,84 @@ int get_bank() {
 	return b;
 }
 
+unsigned char displayroms() {
+	unsigned char *signature;
+	signature=display_signature_bank(0,4);
+	cputsxy(2,10,signature);
+
+
+}
+
+
+void menu (unsigned char current_menu) {
+	unsigned char posy=4;
+    unsigned char version;
+
+    unsigned char key;
+    unsigned char validate=1;
+    unsigned char redraw=1;
+
+    while (1) {
+
+    if (current_menu==0)
+        bgcolor (COLOR_RED);
+    else
+        bgcolor (COLOR_BLACK); 
+
+    cputsxy(2,posy,"ROM");
+
+    if (current_menu==1)
+        bgcolor (COLOR_RED);
+    else
+        bgcolor (COLOR_BLACK); 
+    
+    cputsxy(7,posy,"RAM");
+
+    if (current_menu==2)
+        bgcolor (COLOR_RED);
+    else
+        bgcolor (COLOR_BLACK); 
+
+    cputsxy(12,posy,"Quit");
+    
+    bgcolor(COLOR_BLACK);
+    gotoxy(23,posy);
+    cputc(' '); 
+
+
+        if (current_menu==0 && validate==0) {
+            key=displayroms();
+            redraw=0;
+        }    
+
+       if (current_menu==1 && validate==0) {
+            //key=tools();
+            redraw=0;
+        }     
+
+        if (current_menu==2 && validate==0) break;
+        if (validate==0) validate=1;
+
+        if (redraw==1) 
+            key=cgetc();
+        else
+            redraw=1;
+
+        if (key==9) {
+            if (current_menu!=2)
+                current_menu++;
+        }
+        if (key==8) {
+            if (current_menu!=0)
+                current_menu--;
+        }
+        if (key==13)
+            validate=0;
+
+        if (key==27) break;
+    }
+
+}
 	
 int main() {
 	unsigned int sect,bank,choice;
@@ -37,9 +117,10 @@ int main() {
 		bgcolor(COLOR_BLUE);
 		textcolor(COLOR_WHITE);
 		cputsxy(1,1,"+-------------------------------------+");
-		cputsxy(1,2,"|          Orixcfg v2020.1            |");
+		cputsxy(1,2,"|          Orixcfg v2020.2            |");
 		cputsxy(1,3,"+-------------------------------------+");
-		
+		menu (0);
+		/*
 		bgcolor(COLOR_BLACK);
 		cputsxy(0,5,"This tool can only update kernel, shell and basic11");
 
@@ -54,6 +135,7 @@ int main() {
 		printf("q. Quit\n\n");
 		choice=cgetc();
 		printf("\n\n");
+		*/
 		switch(choice) {
 			case 'i':
 				status=read_eeprom_manufacturer(0);
