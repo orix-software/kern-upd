@@ -25,9 +25,145 @@ int get_bank() {
 
 unsigned char displayroms() {
 	unsigned char *signature;
-	signature=display_signature_bank(0,4);
-	cputsxy(2,10,signature);
+	unsigned char setstring[41];
+	unsigned char i;
+	unsigned char current_set=0;
+	unsigned char key;
+	unsigned char current_menu=1;
+	unsigned char draw=1;
+	unsigned char posx_label_menu[3]={2,14,24};
+	char label_menu_gen[3][12] =
+			{ "Prev. set",
+  			"Next set",
+			"Program set"
+			};
+	
+	for (i=7;i>0;i--) {
+		signature=display_signature_bank(0,i);
+		if (i<5)
+			cputsxy(2,17-i,signature);
+		else
+			cputsxy(2,14-i,signature);
+	}
 
+	cputsxy(0,6,"+---Main-------------------------------+");
+
+	cputsxy(0,7,"|");
+	cputsxy(39,7,"|");
+
+	cputsxy(0,8,"|");
+	cputsxy(39,8,"|");	
+
+	cputsxy(0,9,"|");
+	cputsxy(39,9,"|");
+	
+
+	cputsxy(0,11,"|");	
+	cputsxy(0,12,"|");	
+	cputsxy(0,13,"|");	
+	cputsxy(0,14,"|");
+	cputsxy(0,15,"|");	
+	cputsxy(0,16,"|");				
+
+/*
+	cputsxy(31,11,"|");	
+	cputsxy(31,12,"|");	
+	cputsxy(31,13,"|");	
+	cputsxy(31,14,"|");	
+*/
+	cputsxy(39,11,"|");	
+	cputsxy(39,12,"|");	
+	cputsxy(39,13,"|");	
+	cputsxy(39,14,"|");	
+	cputsxy(39,15,"|");	
+	cputsxy(39,16,"|");		
+
+
+	current_menu=2;
+	cputsxy(0,17,  "+--------------------------------------+");
+	cputsxy(0,12,  "+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+");
+
+
+
+	while (1) {
+		if (draw==1) {
+			sprintf(setstring, "+---Set %d------------------------------+", current_set);
+			cputsxy(0,10, setstring);
+
+			if (current_menu==1)
+				bgcolor(COLOR_RED);
+			else
+				bgcolor(COLOR_BLACK);
+			if (current_set!=0) {
+				cputsxy(posx_label_menu[0],11,label_menu_gen[0]);	
+				cputsxy(0,11,"|");	
+			}
+
+			if (current_menu==2)
+				bgcolor(COLOR_RED);
+			else
+				bgcolor(COLOR_BLACK);
+			cputsxy(posx_label_menu[1],11,label_menu_gen[1]);	
+
+			if (current_menu==3)
+				bgcolor(COLOR_RED);
+			else
+				bgcolor(COLOR_BLACK);
+			cputsxy(posx_label_menu[2],11,label_menu_gen[2]);					
+
+			draw=0;
+		}
+
+		key=cgetc();
+		if (key==13) {
+			if (current_menu==2 && current_set!=7) current_set++;
+			if (current_menu==1 && current_set!=0) current_set--;
+			draw=1;
+		}
+
+		// gauche
+		if (key==8 && current_menu!=1) {
+			 if (current_set==0 && current_menu==2) 
+			 	draw=0;
+			 else {
+				current_menu--;
+				draw=1;
+			 }
+		}		
+
+		//droote
+		if (key==9 && current_menu!=3) {
+			current_menu++;
+			draw=1;
+		}
+	
+
+		if (key==11) {
+			bgcolor(COLOR_BLACK);			
+			cputsxy(posx_label_menu[current_menu],11,label_menu_gen[current_menu]);				
+			return 0;
+		}		
+
+
+		if (key==27) {
+			bgcolor(COLOR_BLACK);			
+			cputsxy(posx_label_menu[current_menu],11,label_menu_gen[current_menu]);	
+			return 0;
+		}	
+
+	}
+	//cputsxy(0,8,"|");
+	//cputsxy(39,8,"|");	
+/*
+//cputsxy(0,10,  "+--------------------------------------+");
+
+
+	cputsxy(0,14-5,"|");
+	cputsxy(39,14-5,"|");		
+	
+	cputsxy(0,20,  "+--------------------------------------+");
+	
+*/	
 
 }
 
@@ -39,46 +175,53 @@ void menu (unsigned char current_menu) {
     unsigned char key;
     unsigned char validate=1;
     unsigned char redraw=1;
+	unsigned char posx_label_menu[2]={2,7};
+	char label_menu_gen[2][6] =
+			{ "ROM",
+  			"Quit"
+			};
 
     while (1) {
 
-    if (current_menu==0)
-        bgcolor (COLOR_RED);
-    else
-        bgcolor (COLOR_BLACK); 
+		if (current_menu==0)
+			bgcolor (COLOR_RED);
+		else
+			bgcolor (COLOR_BLACK); 
 
-    cputsxy(2,posy,"ROM");
+		cputsxy(posx_label_menu[0],posy,label_menu_gen[0]);
 
-    if (current_menu==1)
-        bgcolor (COLOR_RED);
-    else
-        bgcolor (COLOR_BLACK); 
-    
-    cputsxy(7,posy,"RAM");
+		if (current_menu==1)
+			bgcolor (COLOR_RED);
+		else
+			bgcolor (COLOR_BLACK); 
+	/* 
+		cputsxy(7,posy,"RAM");
 
-    if (current_menu==2)
-        bgcolor (COLOR_RED);
-    else
-        bgcolor (COLOR_BLACK); 
-
-    cputsxy(12,posy,"Quit");
-    
-    bgcolor(COLOR_BLACK);
-    gotoxy(23,posy);
-    cputc(' '); 
+		if (current_menu==2)
+			bgcolor (COLOR_RED);
+		else
+			bgcolor (COLOR_BLACK); 
+	*/
+		cputsxy(posx_label_menu[1],posy,label_menu_gen[1]);
+		
+		bgcolor(COLOR_BLACK);
+		gotoxy(13,posy);
+		cputc(' '); 
 
 
         if (current_menu==0 && validate==0) {
+			bgcolor (COLOR_BLACK); 
+			cputsxy(posx_label_menu[0],posy,label_menu_gen[0]);						
             key=displayroms();
             redraw=0;
         }    
-
+/*
        if (current_menu==1 && validate==0) {
             //key=tools();
             redraw=0;
         }     
-
-        if (current_menu==2 && validate==0) break;
+*/
+        if (current_menu==1 && validate==0) break;
         if (validate==0) validate=1;
 
         if (redraw==1) 
@@ -87,7 +230,7 @@ void menu (unsigned char current_menu) {
             redraw=1;
 
         if (key==9) {
-            if (current_menu!=2)
+            if (current_menu!=1)
                 current_menu++;
         }
         if (key==8) {

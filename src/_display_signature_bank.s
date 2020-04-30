@@ -12,7 +12,6 @@
     ldx     $321
     stx     save_bank
     and     #%00000111
-    lda     #$04
     sta     $321
     jsr     popa ; sector
 
@@ -35,8 +34,12 @@
 @L1:    
     lda     (ptr2),y
     beq     @out
+    cmp     #$0A ; skip return line
+    beq     @out    
+    cmp     #$0D
+    beq     @out
     sta     bank_signature,y
-    sta     $bb80,y
+   ; sta     $bb80,y
     iny
     cpy     #MAX_SIGNATURE_LENGTH
     bne     @L1
