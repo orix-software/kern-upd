@@ -27,7 +27,7 @@ endif
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
-	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES)
+	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM)
   
 
 srccode: $(SOURCE)
