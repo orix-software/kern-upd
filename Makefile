@@ -17,8 +17,7 @@ SOURCE=src/$(PROGRAM).c
 ifdef TRAVIS_BRANCH
 ifeq ($(TRAVIS_BRANCH), master)
 RELEASE:=$(shell cat VERSION)
-$(shell cat VERSION)
-$(shell ls)
+RELEASE:=$(shell cat VERSION)
 else
 RELEASE:=alpha
 endif
