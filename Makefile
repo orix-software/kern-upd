@@ -49,6 +49,8 @@ test:
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
+	echo Branch $(TRAVIS_BRANCH) Release   $(RELEASE)
+	cat VERSION
 	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz $(RELEASE)
 
   
