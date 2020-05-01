@@ -23,6 +23,11 @@ int get_bank() {
 	return b;
 }
 
+unsigned char displays_and_program() {
+	cputsxy(0,17,"+--Carts-------------------------------+");	
+	cputsxy(0,27,"+--------------------------------------+");	
+}
+
 unsigned char displayroms() {
 	unsigned char *signature;
 	unsigned char setstring[41];
@@ -118,6 +123,7 @@ unsigned char displayroms() {
 		if (key==13) {
 			if (current_menu==2 && current_set!=7) current_set++;
 			if (current_menu==1 && current_set!=0) current_set--;
+			if (current_menu==3) displays_and_program();
 			draw=1;
 		}
 

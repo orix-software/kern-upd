@@ -6,7 +6,7 @@ PROGRAM=orixcfg
 LDFILES=src/eeprom.s src/_display_signature_bank.s src\loadfile.s 
 
 
-ifdef $(TRAVIS_BRANCH)
+ifdef TRAVIS_BRANCH
 ifeq ($(TRAVIS_BRANCH), master)
 RELEASE:=$(shell cat VERSION)
 else
