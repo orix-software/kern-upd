@@ -14,7 +14,7 @@ HOMEDIR=/home/travis/bin/
 SOURCE=src/$(PROGRAM).c
 
 
-ifdef $(TRAVIS_BRANCH)
+
 ifeq ($(TRAVIS_BRANCH), master)
 RELEASE:=$(shell cat VERSION)
 $(shell cat VERSION)
@@ -22,7 +22,7 @@ $(shell ls)
 else
 RELEASE:=alpha
 endif
-endif
+
 
 
 
