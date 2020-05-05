@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <conio.h>
 #include <string.h>
+#include <telestrat.h>
 
 #define TRUE -1
 #define FALSE 0
@@ -13,6 +14,12 @@ extern unsigned int read_eeprom_manufacturer(unsigned char sector);
 
 extern unsigned char * display_signature_bank(unsigned char sector,unsigned char bank);
 
+#define MAX_SIZE_CONTENT_CONF 1000
+#define MAX_SLOT 4
+
+unsigned char content_conf[MAX_SIZE_CONTENT_CONF];
+FILE *fp;
+
 int get_bank() {
 	int b=0;
 	while (b<1 || b>4) {
@@ -23,9 +30,155 @@ int get_bank() {
 	return b;
 }
 
+#define MAX_LENGTH_OF_PATH 50
+
+	unsigned char label[MAX_SLOT][20];
+	unsigned char path[MAX_SLOT][MAX_LENGTH_OF_PATH];
+
+// Return next position or 0 if we reach end of line or end of file
+
+unsigned char getLabel(unsigned int posStart, unsigned char maxChars,unsigned char cart) {
+	unsigned int i,j;
+	j=0;
+	for (i=posStart;i<maxChars;i++) {
+		if (content_conf[i]==0x0d) {
+			return 0;
+		}
+			
+		if (content_conf[i]!=';') {
+			label[cart][j]=content_conf[i];
+			j++;
+		}
+		else {
+			label[cart][j]=0;
+			cputsxy(6,18+cart,label[cart]);	
+			i++;
+			break;
+		}
+	}
+	if (i>maxChars) {
+			return 0;
+		}
+
+	return i;
+}
+
+
+unsigned char getPath(unsigned int posStart, unsigned char maxChars,unsigned char cart) {
+	unsigned int i,j;
+	j=0;
+	for (i=posStart;i<maxChars;i++) {
+		if (i>maxChars) {
+			return 0;
+		}
+			
+		if (content_conf[i]!=0x0d) {
+			path[cart][j]=content_conf[i];
+			j++;
+		}
+		else {
+			if (j>MAX_LENGTH_OF_PATH) return 0; // Overflow
+			path[cart][j]=0;
+			i++;
+			break;
+		}
+	}
+	return i;
+}
+
+
 unsigned char displays_and_program() {
-	cputsxy(0,17,"+--Carts-------------------------------+");	
-	cputsxy(0,27,"+--------------------------------------+");	
+
+	//static char line[100];
+	unsigned int nb,i;
+	unsigned char *filename="/etc/orixcfg/orixcfg.cnf";
+	unsigned char key;
+	unsigned char current_cart;
+	unsigned char cart;
+	unsigned char label_found=0;
+
+	fp=fopen(filename,"r");
+	if (fp==NULL) {
+		printf("Can not open %s\n",filename);
+		clrscr();
+		return 0;
+	}
+	bgcolor(COLOR_BLACK);
+	cputsxy(2,17,"+--Choose the Cardridge to load------+");	
+	cputsxy(2,25,"+------------------------------------+");	
+	cputsxy(2,18,"|");	
+	cputsxy(2,19,"|");	
+	cputsxy(2,20,"|");
+	cputsxy(2,21,"|");
+	cputsxy(2,22,"|");	
+	cputsxy(2,23,"|");	
+	cputsxy(2,24,"|");
+
+	cputsxy(39,18,"|");	
+	cputsxy(39,19,"|");	
+	cputsxy(39,20,"|");
+	cputsxy(39,21,"|");
+	cputsxy(39,22,"|");	
+	cputsxy(39,23,"|");	
+	cputsxy(39,24,"|");
+
+	nb=fread(content_conf,MAX_SIZE_CONTENT_CONF,1,fp);
+	//Monitor-Forth;/usr/share/carts/mfee.r64;Monitor 2020.1, Forth 2020.1, Empty Rom 2020.1, Empty Rom 2020.1;mfee.hlp
+
+
+	cart=0;
+	label_found=0;
+	i=0;
+	bgcolor(COLOR_RED);
+	while (i<nb) {
+		if (cart!=0)
+			bgcolor(COLOR_BLACK);
+		i=getLabel(i, nb,cart);
+		if (i==0) {
+			textcolor(COLOR_RED);
+			cputsxy(3,26,"Error cannot found label");	
+			return 1;
+		}
+		i=getPath(i, nb,cart);
+		if (i==0) {
+			printf("Return");
+			break;
+		}
+		//cart++;
+		if (cart>MAX_SLOT) break;
+	}
+	current_cart=0;
+	while (1) {
+		key=cgetc();
+
+		if (key==10 && current_cart!=cart) {
+			bgcolor(COLOR_BLACK);
+			cputsxy(5,18+current_cart," ");	
+			current_cart++;
+			bgcolor(COLOR_RED);
+			cputsxy(5,18+current_cart," ");				
+		}		
+
+		if (key==11 && current_cart!=0 ) {
+			bgcolor(COLOR_BLACK);
+			cputsxy(5,18+current_cart," ");	
+			current_cart--;
+			bgcolor(COLOR_RED);
+			cputsxy(5,18+current_cart," ");		
+		}
+
+
+		if (key==27) {
+			cputsxy(2,17,  "+------------------------------------+");
+			for (i=0;i<8;i++)
+				cclearxy (0, 18+i, 40);
+			
+			//bgcolor(COLOR_BLACK);			
+			//cputsxy(posx_label_menu[current_menu],11,label_menu_gen[current_menu]);	
+			return 0;
+		}	
+
+	}
 }
 
 unsigned char displayroms() {
@@ -36,39 +189,35 @@ unsigned char displayroms() {
 	unsigned char key;
 	unsigned char current_menu=1;
 	unsigned char draw=1;
-	unsigned char posx_label_menu[3]={2,14,24};
+	unsigned char posx_label_menu[3]={4,15,25};
 	char label_menu_gen[3][12] =
 			{ "Prev. set",
   			"Next set",
 			"Program set"
 			};
 	
-	for (i=7;i>0;i--) {
-		signature=display_signature_bank(0,i);
-		if (i<5)
-			cputsxy(2,17-i,signature);
-		else
-			cputsxy(2,14-i,signature);
-	}
 
-	cputsxy(0,6,"+---Main-------------------------------+");
+	textcolor(COLOR_WHITE);
+	cputsxy(2,6,"+---Main-----------------------------+");
 
-	cputsxy(0,7,"|");
+	cputsxy(2,7,"|");
+
 	cputsxy(39,7,"|");
 
-	cputsxy(0,8,"|");
+	cputsxy(2,8,"|");
 	cputsxy(39,8,"|");	
 
-	cputsxy(0,9,"|");
+	cputsxy(2,9,"|");
 	cputsxy(39,9,"|");
 	
 
-	cputsxy(0,11,"|");	
-	cputsxy(0,12,"|");	
-	cputsxy(0,13,"|");	
-	cputsxy(0,14,"|");
-	cputsxy(0,15,"|");	
-	cputsxy(0,16,"|");				
+	cputsxy(2,11,"|");	
+	cputsxy(2,12,"|");	
+	cputsxy(2,13,"|");	
+	cputsxy(2,14,"|");
+	cputsxy(2,15,"|");	
+	cputsxy(2,16,"|");	
+		
 
 /*
 	cputsxy(31,11,"|");	
@@ -85,23 +234,32 @@ unsigned char displayroms() {
 
 
 	current_menu=2;
-	cputsxy(0,17,  "+--------------------------------------+");
-	cputsxy(0,12,  "+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+");
+	cputsxy(2,17,  "+------------------------------------+");
+	cputsxy(2,12,  "+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+");
 
-
+	for (i=7;i>0;i--) {
+		signature=display_signature_bank(0,i);
+		sprintf(setstring, "|%s", signature);
+		if (i<5)
+			cputsxy(2,17-i,setstring);
+		else
+			cputsxy(2,14-i,setstring);
+	}
 
 	while (1) {
 		if (draw==1) {
-			sprintf(setstring, "+---Set %d------------------------------+", current_set);
-			cputsxy(0,10, setstring);
+			bgcolor(COLOR_BLACK);
+			sprintf(setstring, "+---Set %d----------------------------+", current_set);
+			cputsxy(2,10, setstring);
 
 			if (current_menu==1)
 				bgcolor(COLOR_RED);
 			else
 				bgcolor(COLOR_BLACK);
+
 			if (current_set!=0) {
 				cputsxy(posx_label_menu[0],11,label_menu_gen[0]);	
-				cputsxy(0,11,"|");	
+				cputsxy(2,11,"|");	
 			}
 
 			if (current_menu==2)
@@ -200,6 +358,8 @@ void menu (unsigned char current_menu) {
 			bgcolor (COLOR_RED);
 		else
 			bgcolor (COLOR_BLACK); 
+
+	
 	/* 
 		cputsxy(7,posy,"RAM");
 
@@ -230,23 +390,27 @@ void menu (unsigned char current_menu) {
         if (current_menu==1 && validate==0) break;
         if (validate==0) validate=1;
 
-        if (redraw==1) 
+        if (redraw==1) {
             key=cgetc();
+
+        	if (key==9) {
+            	if (current_menu!=1)
+                	current_menu++;
+        	}
+        	
+			if (key==8) {
+            	if (current_menu!=0)
+                	current_menu--;
+        	}
+        
+		if (key==13)
+            validate=0;
+
+        if (key==27) break;			
+		}
         else
             redraw=1;
 
-        if (key==9) {
-            if (current_menu!=1)
-                current_menu++;
-        }
-        if (key==8) {
-            if (current_menu!=0)
-                current_menu--;
-        }
-        if (key==13)
-            validate=0;
-
-        if (key==27) break;
     }
 
 }
@@ -265,9 +429,9 @@ int main() {
         clrscr();
 		bgcolor(COLOR_BLUE);
 		textcolor(COLOR_WHITE);
-		cputsxy(1,1,"+-------------------------------------+");
-		cputsxy(1,2,"|          Orixcfg v2020.2            |");
-		cputsxy(1,3,"+-------------------------------------+");
+		cputsxy(2,1,"+-----------------------------------+");
+		cputsxy(2,2,"|          Orixcfg v2020.2          |");
+		cputsxy(2,3,"+-----------------------------------+");
 		menu (0);
 		/*
 		bgcolor(COLOR_BLACK);

@@ -22,6 +22,9 @@ IF "%1"=="NORUN" GOTO End
 mkdir %ORICUTRON%\usbdrive\usr\share\orixcfg
 
 copy orixcfg %ORICUTRON%\sdcard\bin\a > NUL
+copy src/etc/orixcfg/carts.cfg %ORICUTRON%\sdcard\etc\orixcfg\ > NUL
+
+
 
 cd %ORICUTRON%
 oricutron -mt 
