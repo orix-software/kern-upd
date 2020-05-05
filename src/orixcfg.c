@@ -41,7 +41,8 @@ unsigned char getLabel(unsigned int posStart, unsigned char maxChars,unsigned ch
 	unsigned int i,j;
 	j=0;
 	for (i=posStart;i<maxChars;i++) {
-		if (content_conf[i]==0x0d) {
+		if (content_conf[i]==0x0a) {
+			//i++;
 			return 0;
 		}
 			
@@ -72,7 +73,7 @@ unsigned char getPath(unsigned int posStart, unsigned char maxChars,unsigned cha
 			return 0;
 		}
 			
-		if (content_conf[i]!=0x0d) {
+		if (content_conf[i]!=0x0a) {
 			path[cart][j]=content_conf[i];
 			j++;
 		}
@@ -83,18 +84,20 @@ unsigned char getPath(unsigned int posStart, unsigned char maxChars,unsigned cha
 			break;
 		}
 	}
+	//if (content_conf[i]==0x0A) i++;
 	return i;
 }
 
 
-unsigned char displays_and_program() {
+unsigned char displays_and_program(unsigned char set) {
 
 	//static char line[100];
+	unsigned char setstring[80];
 	unsigned int nb,i;
 	unsigned char *filename="/etc/orixcfg/orixcfg.cnf";
 	unsigned char key;
 	unsigned char current_cart;
-	unsigned char cart;
+	static unsigned char cart;
 	unsigned char label_found=0;
 
 	fp=fopen(filename,"r");
@@ -105,14 +108,14 @@ unsigned char displays_and_program() {
 	}
 	bgcolor(COLOR_BLACK);
 	cputsxy(2,17,"+--Choose the Cardridge to load------+");	
-	cputsxy(2,25,"+------------------------------------+");	
+	cputsxy(2,24,"+------------------------------------+");	
 	cputsxy(2,18,"|");	
 	cputsxy(2,19,"|");	
 	cputsxy(2,20,"|");
 	cputsxy(2,21,"|");
 	cputsxy(2,22,"|");	
 	cputsxy(2,23,"|");	
-	cputsxy(2,24,"|");
+	//cputsxy(2,24,"|");
 
 	cputsxy(39,18,"|");	
 	cputsxy(39,19,"|");	
@@ -120,7 +123,7 @@ unsigned char displays_and_program() {
 	cputsxy(39,21,"|");
 	cputsxy(39,22,"|");	
 	cputsxy(39,23,"|");	
-	cputsxy(39,24,"|");
+	//cputsxy(39,24,"|");
 
 	nb=fread(content_conf,MAX_SIZE_CONTENT_CONF,1,fp);
 	//Monitor-Forth;/usr/share/carts/mfee.r64;Monitor 2020.1, Forth 2020.1, Empty Rom 2020.1, Empty Rom 2020.1;mfee.hlp
@@ -144,9 +147,10 @@ unsigned char displays_and_program() {
 			printf("Return");
 			break;
 		}
-		//cart++;
+		if (strlen(label[cart])!=0) cart++;
 		if (cart>MAX_SLOT) break;
 	}
+	cart--;
 	current_cart=0;
 	while (1) {
 		key=cgetc();
@@ -167,14 +171,30 @@ unsigned char displays_and_program() {
 			cputsxy(5,18+current_cart," ");		
 		}
 
+		if (key==13) {
+			bgcolor(COLOR_BLACK);
+			if (set==4)
+				sprintf(setstring, "Do you want to load this cart !KERNEL! into %c eeprom set [y/N]? ",set);
+			else
+				sprintf(setstring, "Do you want to load this cart into %c eeprom set [y/N]? ",set);
+			cputsxy(2,25,setstring);
+			key=cgetc();
+			if (key=='y') {
+				//Program
+			}
+			else {
+				cclearxy (0, 25, 40);
+				cclearxy (0, 26, 40);
+				cclearxy (0, 27, 40);
+			}
+		}
 
 		if (key==27) {
+			bgcolor(COLOR_BLACK);
 			cputsxy(2,17,  "+------------------------------------+");
 			for (i=0;i<8;i++)
 				cclearxy (0, 18+i, 40);
 			
-			//bgcolor(COLOR_BLACK);			
-			//cputsxy(posx_label_menu[current_menu],11,label_menu_gen[current_menu]);	
 			return 0;
 		}	
 
@@ -185,12 +205,12 @@ unsigned char displayroms() {
 	unsigned char *signature;
 	unsigned char setstring[41];
 	unsigned char i;
-	unsigned char current_set=0;
+	static unsigned char current_set=0;
 	unsigned char key;
-	unsigned char current_menu=1;
+	static unsigned char current_menu=1;
 	unsigned char draw=1;
-	unsigned char posx_label_menu[3]={4,15,25};
-	char label_menu_gen[3][12] =
+	static unsigned char posx_label_menu[3]={4,15,25};
+	static char label_menu_gen[3][12] =
 			{ "Prev. set",
   			"Next set",
 			"Program set"
@@ -281,7 +301,7 @@ unsigned char displayroms() {
 		if (key==13) {
 			if (current_menu==2 && current_set!=7) current_set++;
 			if (current_menu==1 && current_set!=0) current_set--;
-			if (current_menu==3) displays_and_program();
+			if (current_menu==3) displays_and_program(current_set);
 			draw=1;
 		}
 
@@ -332,15 +352,15 @@ unsigned char displayroms() {
 }
 
 
-void menu (unsigned char current_menu) {
-	unsigned char posy=4;
+void menu () {
+	static unsigned char posy=4;
     unsigned char version;
-
-    unsigned char key;
-    unsigned char validate=1;
-    unsigned char redraw=1;
-	unsigned char posx_label_menu[2]={2,7};
-	char label_menu_gen[2][6] =
+	static unsigned char current_menu=0;
+    static unsigned char key;
+    static unsigned char validate=1;
+    static unsigned char redraw=1;
+	static unsigned char posx_label_menu_gen[2]={2,7};
+	static char label_menu_gen[2][6] =
 			{ "ROM",
   			"Quit"
 			};
@@ -352,7 +372,7 @@ void menu (unsigned char current_menu) {
 		else
 			bgcolor (COLOR_BLACK); 
 
-		cputsxy(posx_label_menu[0],posy,label_menu_gen[0]);
+		cputsxy(posx_label_menu_gen[0],4,label_menu_gen[0]);
 
 		if (current_menu==1)
 			bgcolor (COLOR_RED);
@@ -368,16 +388,16 @@ void menu (unsigned char current_menu) {
 		else
 			bgcolor (COLOR_BLACK); 
 	*/
-		cputsxy(posx_label_menu[1],posy,label_menu_gen[1]);
+		cputsxy(posx_label_menu_gen[1],4,label_menu_gen[1]);
 		
 		bgcolor(COLOR_BLACK);
-		gotoxy(13,posy);
+		gotoxy(13,4);
 		cputc(' '); 
 
 
         if (current_menu==0 && validate==0) {
 			bgcolor (COLOR_BLACK); 
-			cputsxy(posx_label_menu[0],posy,label_menu_gen[0]);						
+			cputsxy(posx_label_menu_gen[0],4,label_menu_gen[0]);						
             key=displayroms();
             redraw=0;
         }    
@@ -420,11 +440,8 @@ int main() {
 	unsigned char manufacturer_code;
 	unsigned char device_code;
 	static unsigned int status;
-	unsigned char filenametoload[50];
 	unsigned i=0;
-	FILE *fp;
 
-	strcpy(filenametoload,"");
 	while (1) {
         clrscr();
 		bgcolor(COLOR_BLUE);
@@ -432,7 +449,7 @@ int main() {
 		cputsxy(2,1,"+-----------------------------------+");
 		cputsxy(2,2,"|          Orixcfg v2020.2          |");
 		cputsxy(2,3,"+-----------------------------------+");
-		menu (0);
+		menu ();
 		/*
 		bgcolor(COLOR_BLACK);
 		cputsxy(0,5,"This tool can only update kernel, shell and basic11");
