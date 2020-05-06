@@ -16,7 +16,7 @@ SET MYDATE=%mydate% %mytime%
 echo %MYDATE%
 
 
-%CC65%\cl65 -ttelestrat src\orixcfg.c src\eeprom.s src\loadfile.s src/_display_signature_bank.s  -o orixcfg
+%CC65%\cl65 -ttelestrat src\orixcfg.c src\eeprom.s src\loadfile.s src/_display_signature_bank.s -o orixcfg
 
 IF "%1"=="NORUN" GOTO End
 mkdir %ORICUTRON%\usbdrive\usr\share\orixcfg
