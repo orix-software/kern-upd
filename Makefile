@@ -43,7 +43,7 @@ test:
 	mkdir -p build/bin/$(PROGRAM)/
 	cp $(PROGRAM) build/bin/$(PROGRAM)/
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
-	filepack  $(PROGRAM.tar $(PROGRAM).pkg
+	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
 	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz $(RELEASE)
