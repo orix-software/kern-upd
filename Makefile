@@ -44,8 +44,8 @@ test:
 	mkdir -p build/usr/share/ipkg/
 	mkdir -p build/usr/share/man/  
 	mkdir -p build/usr/share/doc/$(PROGRAM)/
-	mkdir -p build/bin/$(PROGRAM)/
-	cp $(PROGRAM) build/bin/$(PROGRAM)/
+	mkdir -p build/bin/
+	cp $(PROGRAM) build/bin/
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
