@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <conio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <telestrat.h>
+
+#include "../dependencies/twilighte-lib/src/include/twilighte.h"
 
 #define TRUE -1
 #define FALSE 0
@@ -86,6 +89,7 @@ unsigned char getPath(unsigned int posStart, unsigned char maxChars,unsigned cha
 			break;
 		}
 	}
+	//path[cart][j]=0;
 	//if (content_conf[i]==0x0A) i++;
 	return i;
 }
@@ -96,8 +100,8 @@ unsigned char displays_and_program() {
 	//static char line[100];
 	unsigned char setstring[80];
 	unsigned int nb,i;
-	unsigned char *filename="/etc/orixcfg/orixcfg.cnf";
-	unsigned char key;
+	unsigned char *filename="/etc/orixcfg/carts.cfg";
+	unsigned char key,status;
 	unsigned char current_cart;
 	static unsigned char cart;
 	unsigned char label_found=0;
@@ -129,7 +133,7 @@ unsigned char displays_and_program() {
 
 	nb=fread(content_conf,MAX_SIZE_CONTENT_CONF,1,fp);
 	//Monitor-Forth;/usr/share/carts/mfee.r64;Monitor 2020.1, Forth 2020.1, Empty Rom 2020.1, Empty Rom 2020.1;mfee.hlp
-
+	//printf("Number of bytes : %d",nb);
 
 	cart=0;
 	label_found=0;
@@ -178,11 +182,19 @@ unsigned char displays_and_program() {
 			if (current_set==4)
 				sprintf(setstring, "Do you want to load this cart !KERNEL! into sector %d of the eeprom  [y/N]? ",current_set);
 			else
-				sprintf(setstring, "Do you want to load this cart into %d eeprom set [y/N]? ",current_set);
+				sprintf(setstring, "Do you want to load this cart into %d eeprom set [Y/n] with file %s ? ",current_set,path[current_cart]);
 			cputsxy(2,25,setstring);
 			key=cgetc();
-			if (key=='y') {
+			if (key=='Y') {
+
 				//Program
+					status=program_sector(path[current_cart],current_set);
+					if (status==1)
+						cputsxy(20,20,"Can't open file");
+
+					else 
+						cputsxy(20,20,"Finished");
+
 			}
 			else {
 				cclearxy (0, 25, 40);
@@ -259,20 +271,29 @@ unsigned char displayroms() {
 	cputsxy(2,17,  "+------------------------------------+");
 	cputsxy(2,12,  "+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+");
 
-	for (i=7;i>0;i--) {
-		signature=display_signature_bank(0,i);
-		sprintf(setstring, "|%s", signature);
-		if (i<5)
-			cputsxy(2,17-i,setstring);
-		else
-			cputsxy(2,14-i,setstring);
-	}
+
 
 	while (1) {
 		if (draw==1) {
 			bgcolor(COLOR_BLACK);
-			sprintf(setstring, "+---Set %d----------------------------+", current_set);
+			if (current_set==4)
+				sprintf(setstring, "+---Set %d Kernel Set be careful ! ---+", current_set);
+			else
+				sprintf(setstring, "+---Set %d----------------------------+", current_set);
 			cputsxy(2,10, setstring);
+
+			for (i=7;i>0;i--) {
+				signature=display_signature_bank(current_set,i);
+				sprintf(setstring, "|%s", signature);
+				if (i<5) {
+					cclearxy (2, 17-i, 34);
+					cputsxy(2,17-i,setstring);
+				}
+				else {
+					cclearxy (2, 14-i, 34);
+					cputsxy(2,14-i,setstring);
+				}
+	}
 
 			if (current_menu_rom==1)
 				bgcolor(COLOR_RED);
@@ -427,19 +448,123 @@ void menu () {
     }
 
 }
-	
-int main() {
-	unsigned int sect,bank,choice;
-	unsigned char manufacturer_code;
+
+void usage()
+{
+  printf("usage:\n");
+  printf("orixcfg \n");
+  printf("orixcfg : Launch menu\n");
+  printf("orixcfg -i : Displays info\n");
+  printf("orixcfg -f : Init SRAM banks\n");
+  printf("orixcfg -v : displays version\n");
+  printf("orixcfg -h : displays help\n");
+  printf("orixcfg -r -sX romfile64KB : Load romfile into set X\n");
+  printf("orixcfg -w -s X -b Y romfile16KB : Load romfile bank Y into set X\n");
+  printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
+  printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
+  return;
+}
+    
+
+void version() {
+	printf("v2020.2\n");
+}
+
+void getEEPROMId() {
+		unsigned char manufacturer_code;
 	unsigned char device_code;
 	static unsigned int status;
-	unsigned i=0;
+				status=read_eeprom_manufacturer(0);
+				device_code=status>>8;
+				manufacturer_code=status&0xFF;
+				switch (manufacturer_code) {
+					case 1: printf("(AMD)\n"); break;
+					case 31:printf("(Atmel)\n"); break;
+					case 32:printf("(ST Microelectronics)\n"); break;
+					default:printf("(unknown)\n");
+				}
+			
+				printf("Device Id: %x ",device_code);
+				switch (device_code) {
+					case 0x20: printf("(29F010)\n"); break;
+					case 0xA4:
+					case 0xE2: printf("(29F040)\n"); break;
+					default: printf("(unknown)\n"); break;
+				}
+}
+
+void initRAM() {
+
+}
+
+int main(int argc,char *argv[]) {
+	
+
+	unsigned int sect,bank,choice;
+
+	unsigned char i=0;
+
+	unsigned char ret=0;
+
+
+  	if (argc==2 && strcmp(argv[1],"-v")==0)  {
+    version();
+    return 0;
+   }
+ 
+  if (argc==2 && strcmp(argv[1],"-h")==0)
+  {
+    usage();
+    return 0;
+  } 
+ 
+  if (argc==2 && strcmp(argv[1],"-i")==0)
+  {
+    getEEPROMId();
+    return 0;
+  } 
+
+  if (argc==2 && strcmp(argv[1],"-A")==0)
+  {
+    initRAM();
+    return 0;
+  } 
+  //printf("orixcfg -w -s X -b Y romfile16KB : Load romfile into set X in bank Y\n");
+//twil_program_rambank(unsigned char bank, char *file, unsigned char set);
+//
+//;unsigned char twil_clear_rambank(unsigned char bank, unsigned char set);
+
+if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-t")==0 )
+  {
+	  //unsigned char * display_signature_bank(unsigned char ROMRAM, unsigned char sector,  unsigned char bank);
+	printf("%s",twil_display_signature_bank(TWIL_BANK_TYPE_RAM, atoi(argv[3]),  atoi(argv[5]) ) );
+	//twil_clear_rambank(atoi(argv[5]), atoi(argv[3]));
+    return 0;
+  } 
+
+if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-c")==0 )
+  {
+	//printf("Clear Ram: set %s, bank %s\n",argv[3],argv[5]);
+	//printf("Clear Ram: set atoi %d, atoi bank %d\n",atoi(argv[3]),atoi(argv[5]));
+	twil_clear_rambank(atoi(argv[5]), atoi(argv[3]));
+    return 0;
+  } 
+
+if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 )
+  {
+	  printf("Loading : %s into set %s, bank %s in ram",argv[6],argv[3],argv[5]);
+	  
+	  ret=twil_program_rambank(atoi(argv[5]), argv[6], atoi(argv[3]));
+	  if (ret==1) printf("File not found");
+    //initRAM();
+    return 0;
+  } 
 
     clrscr();
 	bgcolor(COLOR_BLUE);
 	textcolor(COLOR_WHITE);
 	cputsxy(2,1,"+-----------------------------------+");
-	cputsxy(2,2,"|          Orixcfg v2020.2          |");
+	cputsxy(2,2,"|          Orixcfg v2020.3          |");
 	cputsxy(2,3,"+-----------------------------------+");
 
 	menu ();
@@ -462,23 +587,7 @@ int main() {
 	/*
 		switch(choice) {
 			case 'i':
-				status=read_eeprom_manufacturer(0);
-				device_code=status>>8;
-				manufacturer_code=status&0xFF;
-				switch (manufacturer_code) {
-					case 1: printf("(AMD)\n"); break;
-					case 31:printf("(Atmel)\n"); break;
-					case 32:printf("(ST Microelectronics)\n"); break;
-					default:printf("(unknown)\n");
-				}
-			
-				printf("Device Id: %x ",device_code);
-				switch (device_code) {
-					case 0x20: printf("(29F010)\n"); break;
-					case 0xA4:
-					case 0xE2: printf("(29F040)\n"); break;
-					default: printf("(unknown)\n"); break;
-				}
+				getEEPROMId();
 				break;
 				
 			case 'w':

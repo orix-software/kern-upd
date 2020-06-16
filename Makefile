@@ -25,7 +25,7 @@ SOURCE=src/$(PROGRAM).c
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
-	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM)
+	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) dependencies/twilighte-lib/twilighte.lib
 
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
@@ -40,8 +40,14 @@ test:
 	mkdir -p build/usr/share/ipkg/
 	mkdir -p build/usr/share/man/  
 	mkdir -p build/usr/share/doc/$(PROGRAM)/
+	mkdir -p build/usr/src/$(PROGRAM)/src/
+	
 	mkdir -p build/bin/
 	cp $(PROGRAM) build/bin/
+	cp Makefile build/usr/src/$(PROGRAM)/
+	cp configure build/usr/src/$(PROGRAM)/	
+	cp README.md build/usr/src/$(PROGRAM)/	
+	cp src/* build/usr/src/$(PROGRAM)/src/ -adpR
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
 	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar

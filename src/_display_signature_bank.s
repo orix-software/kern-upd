@@ -13,7 +13,12 @@
     stx     save_bank
     and     #%00000111
     sta     $321
+
+    lda     $343
+    sta     save_twil_banking_register
+
     jsr     popa ; sector
+    sta     $343
 
 
     lda     #<$FFF8
@@ -48,6 +53,9 @@
     lda     #$00
     sta     bank_signature,y
 
+    ldx     save_twil_banking_register
+    stx     $343
+
 
     ldx     save_bank
     stx     $321
@@ -55,6 +63,8 @@
     lda     #<bank_signature
     ldx     #>bank_signature
     rts
+save_twil_banking_register:
+    .res 1
 save_bank:
     .res 1    
 bank_signature:    

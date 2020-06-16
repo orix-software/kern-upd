@@ -238,7 +238,8 @@ reset_label:
 @L1:	
 	lda     (ptr1),y
     beq 	@S1
-  	
+  	cmp		#'/'
+	beq		@next_path
   	cmp     #'a'                        ; 'a'
   	bcc     @do_not_uppercase
   	cmp     #'z'+1                        ; 'z'
@@ -256,11 +257,20 @@ reset_label:
 
     cmp		#CH376_ERR_MISS_FILE
     bne 	start
+@exit:	
 	jsr		restore_twil_registers
 	lda		#$01
 	cli
 	rts
+@next_path:
+	iny
+	lda     #$00
+	sta		CH376_DATA
+	jsr		_ch376_file_open
 
+    cmp		#CH376_ERR_MISS_FILE
+	beq     @exit
+	jmp     @L1
 
 start:
 
