@@ -1,6 +1,6 @@
 # orixcfg
 
-### Load 
+### Load ROM into RAM bank or ROM bank
 
 ## SYNOPSYS
 + orixcfg

@@ -9,7 +9,7 @@
 #define TRUE -1
 #define FALSE 0
 
-extern  unsigned char program_sector(unsigned char *file, unsigned char sector);
+extern unsigned char program_sector(unsigned char *file, unsigned char sector, unsigned char counterdisplay);
 
 extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank, unsigned char bank64id);
 
@@ -100,7 +100,7 @@ unsigned char displays_and_program() {
 	//static char line[100];
 	unsigned char setstring[80];
 	unsigned int nb,i;
-	unsigned char *filename="/etc/orixcfg/carts.cfg";
+	unsigned char *filename="/etc/orixcfg/carts.cnf";
 	unsigned char key,status;
 	unsigned char current_cart;
 	static unsigned char cart;
@@ -113,7 +113,7 @@ unsigned char displays_and_program() {
 		return 0;
 	}
 	bgcolor(COLOR_BLACK);
-	cputsxy(2,17,"+--Choose the Cardridge to load------+");	
+	cputsxy(2,17,"+--Choose the set to load------+");	
 	cputsxy(2,24,"+------------------------------------+");	
 	cputsxy(2,18,"|");	
 	cputsxy(2,19,"|");	
@@ -182,18 +182,22 @@ unsigned char displays_and_program() {
 			if (current_set==4)
 				sprintf(setstring, "Do you want to load this cart !KERNEL! into sector %d of the eeprom  [y/N]? ",current_set);
 			else
-				sprintf(setstring, "Do you want to load this cart into %d eeprom set [Y/n] with file %s ? ",current_set,path[current_cart]);
+				sprintf(setstring, "Load this cart into %d ROM set with file %s [y/N] ? ",current_set,path[current_cart]);
 			cputsxy(2,25,setstring);
 			key=cgetc();
 			if (key=='Y') {
 
 				//Program
-					status=program_sector(path[current_cart],current_set);
-					if (status==1)
-						cputsxy(20,20,"Can't open file");
+					status=program_sector(path[current_cart],current_set,0);
+					cclearxy (0, 25, 40);
+					cclearxy (0, 26, 40);
+					cclearxy (0, 27, 40);
+					if (status==1) {
+						cputsxy(20,25,"Can't open file");
+					}
 
 					else 
-						cputsxy(20,20,"Finished");
+						cputsxy(20,25,"Finished");
 
 			}
 			else {
@@ -452,22 +456,21 @@ void menu () {
 void usage()
 {
   printf("usage:\n");
-  printf("orixcfg \n");
-  printf("orixcfg : Launch menu\n");
+  //printf("orixcfg : Launch menu\n");
   printf("orixcfg -i : Displays info\n");
-  printf("orixcfg -f : Init SRAM banks\n");
+  //printf("orixcfg -A : Init all SRAM banks with empty signature\n");
   printf("orixcfg -v : displays version\n");
   printf("orixcfg -h : displays help\n");
-  printf("orixcfg -r -sX romfile64KB : Load romfile into set X\n");
-  printf("orixcfg -w -s X -b Y romfile16KB : Load romfile bank Y into set X\n");
+  printf("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X\n");
+  printf("orixcfg -w -s X -b Y romfile16KB : Load romfile in bank Y into set X in RAM slot\n");
   printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
-  printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
+  //printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
   return;
 }
     
 
 void version() {
-	printf("v2020.2\n");
+	printf("v2020.3\n");
 }
 
 void getEEPROMId() {
@@ -498,14 +501,15 @@ void initRAM() {
 }
 
 int main(int argc,char *argv[]) {
-	
-
-	unsigned int sect,bank,choice;
-
 	unsigned char i=0;
-
 	unsigned char ret=0;
+	unsigned char mykey=0;
 
+
+  	if (argc==1)  {
+    usage();
+    return 0;
+   }
 
   	if (argc==2 && strcmp(argv[1],"-v")==0)  {
     version();
@@ -550,21 +554,41 @@ if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==
     return 0;
   } 
 
-if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 )
-  {
+if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 )  {
 	  printf("Loading : %s into set %s, bank %s in ram",argv[6],argv[3],argv[5]);
-	  
 	  ret=twil_program_rambank(atoi(argv[5]), argv[6], atoi(argv[3]));
 	  if (ret==1) printf("File not found");
     //initRAM();
     return 0;
   } 
 
+if (strcmp(argv[1],"-r")==0 && strcmp(argv[2],"-s")==0)  {
+	if (strcmp(argv[4],"")==0) {
+		printf("Missing file set of 64KB");
+	}
+	  if (atoi(argv[3])==4) {
+		  printf("you have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
+		  printf("Would you like to continue y/N ?");
+		  mykey=cgetc();
+		  if (mykey!='y') return 0;
+	  }
+
+	  printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
+	  printf("Please wait ... \n");
+	  ret=program_sector(argv[4],atoi(argv[3]),1);
+     if (ret==1) printf("File not found : %s\n",argv[4]);
+    //initRAM();
+    return 0;
+  } 
+
+return 0;					
+		
+
     clrscr();
 	bgcolor(COLOR_BLUE);
 	textcolor(COLOR_WHITE);
 	cputsxy(2,1,"+-----------------------------------+");
-	cputsxy(2,2,"|          Orixcfg v2020.3          |");
+	cputsxy(2,2,"|          Orixcfg v2020.4          |");
 	cputsxy(2,3,"+-----------------------------------+");
 
 	menu ();
