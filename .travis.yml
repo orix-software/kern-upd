@@ -6,10 +6,10 @@ before_install:
     - git clone https://github.com/cc65/cc65.git
     - cd cc65 && make && sudo make install PREFIX=/usr && cd ..
 after_success:
-    - - VERSION=`cat VERSION`    
+    - VERSION=`cat VERSION`    
     - cd orixcfg && tar -c * > ../orixcfg.tar &&	cd ..
     - gzip orixcfg.tar
     - mv orixcfg.tar.gz orixcfg.tgz
-    - curl -X POST --data-binary '@orixcfg.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/alpha/tgz/6502/orixcfg.tgz"
+    # - curl -X POST --data-binary '@orixcfg.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/alpha/tgz/6502/orixcfg.tgz"
 
     

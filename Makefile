@@ -49,7 +49,6 @@ test:
 	cp README.md build/usr/src/$(PROGRAM)/	
 	cp src/* build/usr/src/$(PROGRAM)/src/ -adpR
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
-	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
 	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz $(RELEASE)
