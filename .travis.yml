@@ -4,7 +4,7 @@ before_install:
     - sudo apt-get install -qq curl
     - git clone https://github.com/oric-software/buildTestAndRelease.git
     - git clone https://github.com/cc65/cc65.git
-    - cd cc65 && make && make install && cd ..
+    - cd cc65 && make && make install PREFIX=/bin && cd ..
 after_success:    
     - cd orixcfg && tar -c * > ../orixcfg.tar &&	cd ..
     - gzip orixcfg.tar
