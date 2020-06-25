@@ -22,10 +22,23 @@ HOMEDIR=/home/travis/bin/
 
 SOURCE=src/$(PROGRAM).c
 
+
+ifdef TRAVIS_BRANCH
+ifeq ($(TRAVIS_BRANCH), master)
+RELEASE:=$(shell cat VERSION)
+RELEASE:=$(shell cat VERSION)
+else
+RELEASE:=alpha
+endif
+endif
+
+
+
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
 	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) dependencies/twilighte-lib/twilighte.lib
+
 
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
@@ -40,6 +53,7 @@ test:
 	mkdir -p build/usr/share/ipkg/
 	mkdir -p build/usr/share/man/  
 	mkdir -p build/usr/share/doc/$(PROGRAM)/
+
 	mkdir -p build/usr/src/$(PROGRAM)/src/
 	
 	mkdir -p build/bin/
@@ -51,6 +65,7 @@ test:
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
+
 	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz $(RELEASE)
 
   
