@@ -135,9 +135,6 @@ twilighte_register         := $342
 	cli
 	rts
 
-
-
-
 .endproc
 
 
@@ -194,6 +191,9 @@ start:
 
 .proc _program_sector
 	sei
+	sta		counter_display
+
+	jsr 	popa
 	sta		sector_to_update
 
 	lda		#$00
@@ -219,26 +219,36 @@ start:
 	lda		#$01
 	sta		current_bank
 
-    lda     #CH376_SET_FILE_NAME        ;$2f
-    sta     CH376_COMMAND
-    lda     #'/'
-
-    sta     CH376_DATA
-	lda		#$00
-    sta     CH376_DATA
-	jsr		_ch376_file_open
-
-
 reset_label:
+    ;sty     TR6
+    ldy     #O_RDONLY
+    ;ldx     TR6
 
-    lda     #CH376_SET_FILE_NAME        ;$2f
+	lda     ptr1
+	ldx	    ptr1+1
+	.byte   $00,XOPEN
+	cmp		#$00
+	bne		@start
+	cpy		#$00
+	bne		@start
+	jmp     @exit
+
+
+
+	lda     #CH376_SET_FILE_NAME        ;$2f
     sta     CH376_COMMAND
 
+
+@go:
 	ldy		#$00
+
+
+
 @L1:	
 	lda     (ptr1),y
     beq 	@S1
-  	
+  	cmp		#'/'
+	beq		@next_path
   	cmp     #'a'                        ; 'a'
   	bcc     @do_not_uppercase
   	cmp     #'z'+1                        ; 'z'
@@ -246,24 +256,61 @@ reset_label:
   	sbc     #$1F
 @do_not_uppercase:
 	sta		CH376_DATA
+	sta		$bb80,y
 	iny
 	bne		@L1
 	lda		#$00
 @S1:
+
 	sta		CH376_DATA
 	
 	jsr		_ch376_file_open
 
     cmp		#CH376_ERR_MISS_FILE
-    bne 	start
+    bne 	@start
+@exit:	
 	jsr		restore_twil_registers
 	lda		#$01
 	cli
 	rts
+@next_path:
+	sta		$bb80,y
+	cpy		#$00
+	bne		@S2
+
+    lda     #'/'
+    sta     CH376_DATA
 
 
-start:
+@S2:	
+	iny
+	sty 	savey
+	lda     #$00
+	sta		CH376_DATA
+	jsr		_ch376_file_open
 
+    cmp		#CH376_ERR_MISS_FILE
+	beq     @exit
+
+    lda     #CH376_SET_FILE_NAME        ;$2f
+    sta     CH376_COMMAND	
+	ldy     savey
+	jmp     @L1
+
+@start:
+	
+	lda		counter_display
+	bne		@skip_line
+
+	lda		#' '
+	ldx		#$00
+@L5:	
+	sta		$bb80+25*40,x
+	inx
+	cpx		#40*3
+	bne     @L5
+
+@skip_line:
 	; Erase 
 	lda		sector_to_update
 	sta  	twilighte_banking_register
@@ -293,11 +340,14 @@ start:
 	sta		tmp1
     ; Tester si userzp == 0?
 
+	lda		counter_display
+	bne		@skip_line2
+
 	lda		current_bank
 	clc
     adc		#$30
-	sta     $bb80+21
-
+	sta     $bb80+25*40+21
+@skip_line2:
 
   @read_byte:
 	
@@ -311,7 +361,7 @@ start:
 	lda     value_to_display
 @display:
 	ldx		posx
-  	sta		$bb80+40,x
+  	;sta		$bb80+40,x
 	inx
 	stx		posx
 
@@ -337,7 +387,15 @@ start:
 	bne     @skip_change_bank
 	; end we stop
 
-
+	jsr		restore_twil_registers
+	lda		sector_to_update
+	cmp		#$04
+	bne		@not_kernel_update
+	; Reset now
+	lda		#$07
+	jsr		select_bank
+	jmp     ($fffa)
+@not_kernel_update:
 	lda     #$00
 	cli
 	rts
@@ -359,6 +417,17 @@ start:
 
 	jsr		restore_twil_registers
 
+	lda		sector_to_update
+	cmp		#$04
+	bne		@not_kernel_update2
+	lda		#$11
+	sta		$bb80
+	; Reset now
+	lda		#$07
+	jsr		select_bank
+	jmp     ($fffa)
+
+@not_kernel_update2:
 	lda		#$00
 	cli
 	rts
@@ -368,10 +437,14 @@ str_slash:
 	.asciiz "/"
 posx:
 	.res 1	
+savey:	
+	.res 1
 .endproc
 
 current_bank:
 .res	1
+counter_display:
+	.res 1
 
 .proc write_kernel
 
@@ -387,6 +460,9 @@ write_loop:
 
 	lda		current_bank ; Switch to bank
 	jsr		select_bank
+
+	lda		counter_display
+	bne		@skip_line
 	
 	lda     #'#'
 	jsr     _cputc_custom
@@ -394,6 +470,7 @@ write_loop:
 	lda		ptr3
 	ldx		ptr3+1
 	jsr		_cputhex16_custom
+@skip_line:
 
 	pla
 	ldy		#$00
@@ -424,7 +501,7 @@ wait_write:
 
 _cputc_custom:
 		ldx		pos_cputc
-		sta		$bb80+8,x
+		sta		$bb80+25*40+8,x
 		inx
 		stx     pos_cputc
 

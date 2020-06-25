@@ -3,7 +3,16 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/eeprom.s
+LDFILES=src/eeprom.s src/_display_signature_bank.s src/loadfile.s  
+
+
+ifdef TRAVIS_BRANCH
+ifeq ($(TRAVIS_BRANCH), master)
+RELEASE:=$(shell cat VERSION)
+else
+RELEASE=alpha
+endif
+endif
 
 
 all : srccode code
@@ -28,8 +37,8 @@ endif
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
-	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM)
-  
+	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) dependencies/twilighte-lib/twilighte.lib
+
 
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
@@ -44,14 +53,19 @@ test:
 	mkdir -p build/usr/share/ipkg/
 	mkdir -p build/usr/share/man/  
 	mkdir -p build/usr/share/doc/$(PROGRAM)/
+
+	mkdir -p build/usr/src/$(PROGRAM)/src/
+	
 	mkdir -p build/bin/
 	cp $(PROGRAM) build/bin/
+	cp Makefile build/usr/src/$(PROGRAM)/
+	cp configure build/usr/src/$(PROGRAM)/	
+	cp README.md build/usr/src/$(PROGRAM)/	
+	cp src/* build/usr/src/$(PROGRAM)/src/ -adpR
 	cd build && tar -c * > ../$(PROGRAM).tar &&	cd ..
-	filepack  $(PROGRAM).tar $(PROGRAM).pkg
 	gzip $(PROGRAM).tar
 	mv $(PROGRAM).tar.gz $(PROGRAM).tgz
-	echo Branch $(TRAVIS_BRANCH) Release   $(RELEASE)
-	cat VERSION
+
 	php buildTestAndRelease/publish/publish2repo.php $(PROGRAM).tgz ${hash} 6502 tgz $(RELEASE)
 
   
