@@ -457,7 +457,7 @@ void usage()
 {
   printf("usage:\n");
   //printf("orixcfg : Launch menu\n");
-  printf("orixcfg -i : Displays info\n");
+  printf("orixcfg -i : displays info\n");
   //printf("orixcfg -A : Init all SRAM banks with empty signature\n");
   printf("orixcfg -v : displays version\n");
   printf("orixcfg -h : displays help\n");
@@ -567,8 +567,8 @@ if (strcmp(argv[1],"-r")==0 && strcmp(argv[2],"-s")==0)  {
 		printf("Missing file set of 64KB");
 	}
 	  if (atoi(argv[3])==4) {
-		  printf("you have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
-		  printf("Would you like to continue y/N ?");
+		  printf("You have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
+		  printf("Would you like to continue y/N (Oric will reboot)?\n");
 		  mykey=cgetc();
 		  if (mykey!='y') return 0;
 	  }

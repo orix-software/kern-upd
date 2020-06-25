@@ -387,7 +387,15 @@ reset_label:
 	bne     @skip_change_bank
 	; end we stop
 
-
+	jsr		restore_twil_registers
+	lda		sector_to_update
+	cmp		#$04
+	bne		@not_kernel_update
+	; Reset now
+	lda		#$07
+	jsr		select_bank
+	jmp     ($fffa)
+@not_kernel_update:
 	lda     #$00
 	cli
 	rts
@@ -409,6 +417,17 @@ reset_label:
 
 	jsr		restore_twil_registers
 
+	lda		sector_to_update
+	cmp		#$04
+	bne		@not_kernel_update2
+	lda		#$11
+	sta		$bb80
+	; Reset now
+	lda		#$07
+	jsr		select_bank
+	jmp     ($fffa)
+
+@not_kernel_update2:
 	lda		#$00
 	cli
 	rts
