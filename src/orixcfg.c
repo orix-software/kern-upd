@@ -538,27 +538,20 @@ int main(int argc,char *argv[]) {
 //
 //;unsigned char twil_clear_rambank(unsigned char bank, unsigned char set);
 
-if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-t")==0 )
-  {
-	  //unsigned char * display_signature_bank(unsigned char ROMRAM, unsigned char sector,  unsigned char bank);
+if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-t")==0 ) {
 	printf("%s",twil_display_signature_bank(TWIL_BANK_TYPE_RAM, atoi(argv[3]),  atoi(argv[5]) ) );
-	//twil_clear_rambank(atoi(argv[5]), atoi(argv[3]));
     return 0;
   } 
 
-if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-c")==0 )
-  {
-	//printf("Clear Ram: set %s, bank %s\n",argv[3],argv[5]);
-	//printf("Clear Ram: set atoi %d, atoi bank %d\n",atoi(argv[3]),atoi(argv[5]));
+if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-c")==0 ) {
 	twil_clear_rambank(atoi(argv[5]), atoi(argv[3]));
     return 0;
   } 
 
 if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 )  {
-	  printf("Loading : %s into set %s, bank %s in ram",argv[6],argv[3],argv[5]);
+	  printf("Loading : %s into set %s, bank %s in ram\n",argv[6],argv[3],argv[5]);
 	  ret=twil_program_rambank(atoi(argv[5]), argv[6], atoi(argv[3]));
 	  if (ret==1) printf("File not found");
-    //initRAM();
     return 0;
   } 
 
