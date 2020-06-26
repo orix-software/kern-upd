@@ -470,7 +470,7 @@ void usage()
     
 
 void version() {
-	printf("v2020.3\n");
+	printf("v2020.4\n");
 }
 
 void getEEPROMId() {
