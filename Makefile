@@ -3,7 +3,19 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/eeprom.s src/_display_signature_bank.s src/loadfile.s  
+LDFILES=src/eeprom.s  src/loadfile.s  
+
+ifeq ($(CC65_HOME),)
+        CC = cl65
+        AS = ca65
+        LD = ld65
+        AR = ar65
+else
+        CC = $(CC65_HOME)/bin/cl65
+        AS = $(CC65_HOME)/bin/ca65
+        LD = $(CC65_HOME)/bin/ld65
+        AR = $(CC65_HOME)/bin/ar65
+endif
 
 
 ifdef TRAVIS_BRANCH
@@ -25,7 +37,7 @@ SOURCE=src/$(PROGRAM).c
 
 ifdef TRAVIS_BRANCH
 ifeq ($(TRAVIS_BRANCH), master)
-RELEASE:=$(shell cat VERSION)
+
 RELEASE:=$(shell cat VERSION)
 else
 RELEASE:=alpha
@@ -37,7 +49,7 @@ endif
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
   
 code: $(SOURCE)
-	$(CC) $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) dependencies/twilighte-lib/twilighte.lib
+	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) libs/lib8/ch376.lib libs/lib8/twil.lib
 
 
 srccode: $(SOURCE)

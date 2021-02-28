@@ -1,16 +1,21 @@
 .include "telestrat.inc"
-.include "dependencies/ch376-lib/src/include/ch376.inc"
-.include "dependencies/ch376-lib/src/_ch376_file_open.s"
-.include "dependencies/ch376-lib/src/_ch376_set_file_name.s"
-.include "dependencies/ch376-lib/src/_ch376_set_bytes_read.s"
-.include "dependencies/ch376-lib/src/_ch376_wait_response.s"
 
+.include "../libs/usr/arch/include/ch376.inc"
+
+
+
+.import _ch376_set_bytes_read
+.import _ch376_wait_response
+.import _ch376_set_file_name
+.import _ch376_file_open
 
 
 .importzp tmp1
 
 .import popax
 .import popa
+
+.export _loadAndProgram
 
 .proc _loadAndProgram
    ;ldx #$01
