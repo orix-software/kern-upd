@@ -5,11 +5,18 @@
 .include "cpu.mac"                ; from cc65
 
 
-.include "dependencies/ch376-lib/src/include/ch376.inc"
-.include "dependencies/ch376-lib/src/_ch376_wait_response.s"
-.include "dependencies/ch376-lib/src/_ch376_set_bytes_read.s"
-.include "dependencies/ch376-lib/src/_ch376_set_file_name.s"
-.include "dependencies/ch376-lib/src/_ch376_file_open.s"
+
+.include "../libs/usr/arch/include/ch376.inc"
+
+.import _ch376_set_bytes_read
+.import _ch376_wait_response
+.import _ch376_set_file_name
+.import _ch376_file_open
+
+;.include "dependencies/ch376-lib/src/_ch376_wait_response.s"
+;.include "dependencies/ch376-lib/src/_ch376_set_bytes_read.s"
+;.include "dependencies/ch376-lib/src/_ch376_set_file_name.s"
+;.include "dependencies/ch376-lib/src/_ch376_file_open.s"
 
 ; extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank);
 
@@ -36,9 +43,23 @@ twilighte_register         := $342
 	sta		idbank
 	jsr		popax
 
-	jsr		_open_and_read_file
+    ;sty     TR6
+    ldy     #O_RDONLY
+    ;ldx     TR6
+
+	;lda     ptr1
+	;ldx	    ptr1+1
+	.byte   $00,XOPEN
 	cmp		#$00
-	beq		@continue
+	bne		@continue
+	cpy		#$00
+	bne		@continue
+	;jmp     @exit
+	lda     #$01
+
+;	jsr		_open_and_read_file
+;	cmp		#$00
+	;beq		@continue
 	rts
 @continue:	
 	jsr     save_twil_registers
