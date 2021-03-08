@@ -30,6 +30,7 @@ void usage() {
   printf("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X\n");
   printf("orixcfg -w -s X -b Y romfile16KB : Load romfile in bank Y into set X in RAM slot\n");
   printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
+  printf("orixcfg -w -f : Clear all rams\n");
   //printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
   return;
 }
@@ -63,11 +64,14 @@ void getEEPROMId() {
 	}
 }
 
+unsigned char str_bank[5];
 
 int main(int argc,char *argv[]) {
-	unsigned char i=0;
+	static unsigned char i=0;
+	static unsigned char j=0;
 	unsigned char ret=0;
 	unsigned char mykey=0;
+	unsigned char bank;
 
 
   	if (argc==1) {
@@ -96,6 +100,25 @@ int main(int argc,char *argv[]) {
     	return 0;
 	} 
 */
+	// Flush all
+	if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-f")==0) {
+		//twil_clear_rambank(unsigned char bank, unsigned char set);
+		for (j=0;j<8;j++)
+			for (i=1;i<5;i++) {
+				bank=twil_get_id_bank(i,j);
+				
+				sprintf(str_bank, "Empty RAM %d", bank);
+				printf("Flush RAM bank %d\n",bank);
+				
+				twil_set_bank_signature(str_bank);
+				//printf("Bank %d Set %d\n",i,j);
+				
+				twil_clear_rambank(i, j);
+				//cgetc();
+			}
+	    return 0;
+	} 
+
 	if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 && strcmp(argv[6],"-c")==0 ) {
 		twil_clear_rambank(atoi(argv[5]), atoi(argv[3]));
 	    return 0;

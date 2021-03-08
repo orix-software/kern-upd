@@ -16,7 +16,8 @@ SET MYDATE=%mydate% %mytime%
 echo %MYDATE%
 
 
-%CC65%\cl65 -ttelestrat src\orixcfg.c src\eeprom.s src\loadfile.s src/_display_signature_bank.s dependencies/twilighte-lib/twilighte.lib --static-locals --start-addr $1000 -o orixcfg 
+%CC65%\cl65 -I libs/usr/include/ -ttelestrat  src/orixcfg.c src/eeprom.s  src/loadfile.s   -o orixcfg libs/lib8/ch376.lib libs/lib8/twil.lib
+
 
 IF "%1"=="NORUN" GOTO End
 mkdir %ORICUTRON%\usbdrive\usr\share\orixcfg
