@@ -13,12 +13,6 @@
 .import _ch376_set_file_name
 .import _ch376_file_open
 
-;.include "dependencies/ch376-lib/src/_ch376_wait_response.s"
-;.include "dependencies/ch376-lib/src/_ch376_set_bytes_read.s"
-;.include "dependencies/ch376-lib/src/_ch376_set_file_name.s"
-;.include "dependencies/ch376-lib/src/_ch376_file_open.s"
-
-; extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank);
 
 .export _program_bank_ram
 
@@ -37,11 +31,13 @@
 twilighte_banking_register := $343
 twilighte_register         := $342
 
+; extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank);
+
 .proc _program_bank_ram
-	sta		sector_to_update
-	jsr 	popa
-	sta		idbank
-	jsr		popax
+    sta     sector_to_update
+    jsr     popa
+    sta     idbank
+    jsr     popax
 
     ;sty     TR6
     ldy     #O_RDONLY
@@ -49,43 +45,44 @@ twilighte_register         := $342
 
 	;lda     ptr1
 	;ldx	    ptr1+1
-	.byte   $00,XOPEN
-	cmp		#$00
-	bne		@continue
-	cpy		#$00
-	bne		@continue
+    .byte   $00,XOPEN
+    cmp     #$00
+    bne     @continue
+    cpy     #$00
+    bne     @continue
 	;jmp     @exit
-	lda     #$01
+    lda     #$01
 
 ;	jsr		_open_and_read_file
 ;	cmp		#$00
 	;beq		@continue
 	rts
 @continue:	
-	jsr     save_twil_registers
+    jsr     save_twil_registers
 	; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
 	
 
-	sei
+    sei
 
-	lda		twilighte_register
-	ora		#%00100000
-	sta		twilighte_register
+    lda		twilighte_register
+    ora		#%00100000
+    sta		twilighte_register
 
-	lda		#$00
-	sta     twilighte_banking_register
+    lda		#$00
+    sta     twilighte_banking_register
 
-	lda		idbank
-	jsr		select_bank
+    lda		idbank
+    jsr		select_bank
 
-	lda		#$00
-	sta		ptr3
+    lda		#$00
+    sta		ptr3
 
-	lda		#$C0
-	sta		ptr3+1	
+    lda		#$C0
+    sta		ptr3+1	
 
     lda		#$FF
     tay
+    
     jsr		_ch376_set_bytes_read
 
 @loop:
@@ -379,10 +376,10 @@ reset_label:
 
 
 
-	lda     value_to_display
+    lda     value_to_display
 @display:
-	ldx		posx
-  	;sta		$bb80+40,x
+    ldx		posx
+    ;sta		$bb80+40,x
 	inx
 	stx		posx
 

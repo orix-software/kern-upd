@@ -28,15 +28,16 @@ void usage() {
   printf("orixcfg -v : displays version\n");
   printf("orixcfg -h : displays help\n");
   printf("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X\n");
-  printf("orixcfg -w -s X -b Y romfile16KB : Load romfile in bank Y into set X in RAM slot\n");
+  //printf("orixcfg -w -s X -b Y romfile16KB : Load romfile in bank Y into set X in RAM slot\n");
   printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
   printf("orixcfg -w -f : Clear all rams\n");
+  printf("orixcfg -l 16kbfile.rom -b X: Load 16kbfile into bank X\n");
   //printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
   return;
 }
 
 void version() {
-	printf("v2021.2\n");
+	printf("v2021.3\n");
 }
 
 void getEEPROMId() {
@@ -72,6 +73,9 @@ int main(int argc,char *argv[]) {
 	unsigned char ret=0;
 	unsigned char mykey=0;
 	unsigned char bank;
+	unsigned char physical_bank;
+	unsigned int register_bank;
+	unsigned char twil_register;
 
 
   	if (argc==1) {
@@ -100,6 +104,32 @@ int main(int argc,char *argv[]) {
     	return 0;
 	} 
 */
+	if (strcmp(argv[1],"-l")==0 && strcmp(argv[3],"-b")==0 ) {
+		if (argv[4]=="") {
+			printf("Missing bank id");
+		}
+
+		bank=atoi(argv[4]);
+		if (bank>64) {
+			printf("There is only 64 banks\n");
+			return 1;
+		}
+		if (bank>32) {
+			register_bank=twil_get_registers_from_id_bank(bank);
+			twil_register=register_bank>>8;
+			physical_bank=register_bank&0xFF;
+			printf("Loading : %s into bank %d\n",argv[3],bank);
+			//twil_program_rambank(unsigned char bank, char *file, unsigned char set); 
+			ret=twil_program_rambank(physical_bank, argv[2], twil_register);
+			if (ret==1) printf("File not found %s\n",argv[2]);
+    		return 0;
+			//printf("Bank %d Set %d\n",bank,twil_register);
+		}
+		else {
+			printf("Impossible to program rom bank with this switch, use '-r -s X romfile64KB.r64' flags for EEPROM management\n");
+		}
+	}
+
 	// Flush all
 	if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-f")==0) {
 		//twil_clear_rambank(unsigned char bank, unsigned char set);
@@ -111,10 +141,8 @@ int main(int argc,char *argv[]) {
 				printf("Flush RAM bank %d\n",bank);
 				
 				twil_set_bank_signature(str_bank);
-				//printf("Bank %d Set %d\n",i,j);
 				
 				twil_clear_rambank(i, j);
-				//cgetc();
 			}
 	    return 0;
 	} 
@@ -127,7 +155,7 @@ int main(int argc,char *argv[]) {
 	if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 )  {
 		printf("Loading : %s into set %s, bank %s in ram\n",argv[6],argv[3],argv[5]);
 		ret=twil_program_rambank(atoi(argv[5]), argv[6], atoi(argv[3]));
-		if (ret==1) printf("File not found");
+		if (ret==1) printf("File not found\n");
     	return 0;
 	} 
 

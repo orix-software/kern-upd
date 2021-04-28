@@ -1,6 +1,7 @@
 @echo off
 
-SET ORICUTRON="..\..\..\..\oricutron-iss2-debug\"
+SET ORICUTRON="D:\users\plifp\Onedrive\oric\oricutron_twilighte"
+
 
 SET RELEASE="30"
 SET UNITTEST="NO"
@@ -22,13 +23,13 @@ echo %MYDATE%
 IF "%1"=="NORUN" GOTO End
 mkdir %ORICUTRON%\usbdrive\usr\share\orixcfg
 
-copy orixcfg %ORICUTRON%\sdcard\bin\a > NUL
+copy orixcfg %ORICUTRON%\sdcard\bin\orixcfg > NUL
 copy src/etc/orixcfg/carts.cfg %ORICUTRON%\sdcard\etc\orixcfg\ > NUL
 
 
 
 cd %ORICUTRON%
-oricutron -mt 
+oricutron
 
 
 :End
