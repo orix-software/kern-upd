@@ -3,7 +3,7 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/eeprom.s  src/loadfile.s  
+LDFILES=src/eeprom.s 
 
 ifeq ($(CC65_HOME),)
         CC = cl65
