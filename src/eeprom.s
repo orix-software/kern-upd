@@ -13,9 +13,6 @@
 .import _ch376_set_file_name
 .import _ch376_file_open
 
-
-.export _program_bank_ram
-
 .export _check_flash_protection
 
 .export _read_eeprom_manufacturer
@@ -25,187 +22,11 @@
 .importzp ptr1,ptr2,ptr3
 
 .import popax,popa
-.importzp tmp1,tmp2,tmp3
+.importzp tmp1
 
 
 twilighte_banking_register := $343
 twilighte_register         := $342
-
-; extern unsigned char program_bank_ram(unsigned char *file,unsigned char idbank);
-
-.proc _program_bank_ram
-    sta     sector_to_update
-    jsr     popa
-    sta     idbank
-    jsr     popax
-
-    ;sty     TR6
-    ldy     #O_RDONLY
-    ;ldx     TR6
-
-	;lda     ptr1
-	;ldx	    ptr1+1
-    .byte   $00,XOPEN
-    cmp     #$00
-    bne     @continue
-    cpy     #$00
-    bne     @continue
-	;jmp     @exit
-    lda     #$01
-
-;	jsr		_open_and_read_file
-;	cmp		#$00
-	;beq		@continue
-	rts
-@continue:	
-    jsr     save_twil_registers
-	; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
-	
-
-    sei
-
-    lda		twilighte_register
-    ora		#%00100000
-    sta		twilighte_register
-
-    lda		#$00
-    sta     twilighte_banking_register
-
-    lda		idbank
-    jsr		select_bank
-
-    lda		#$00
-    sta		ptr3
-
-    lda		#$C0
-    sta		ptr3+1	
-
-    lda		#$FF
-    tay
-    
-    jsr		_ch376_set_bytes_read
-
-@loop:
-    cmp		#CH376_USB_INT_DISK_READ
-    bne		@finished
-
-    lda		#CH376_RD_USB_DATA0
-    sta		CH376_COMMAND
-    lda		CH376_DATA
-	sta		tmp1
-
-
-  @read_byte:
-	
-    lda		CH376_DATA
-
-	pha
-	
-	lda     #'#'
-	jsr     _cputc_custom
-
-	lda		ptr3
-	ldx		ptr3+1
-	jsr		_cputhex16_custom
-
-	pla
-
-
-	ldy		#$00
-	sta		(ptr3),y
-	inc		ptr3
-	bne		@no_inc
-	inc		ptr3+1
-@no_inc:	
-	
-
-	
-
-	lda		ptr3+1
-	bne     @skip_change_bank
-
-	lda		ptr3
-	bne     @skip_change_bank	
-
-	jsr		restore_twil_registers
-	cli
-	lda     #$00
-	
-
-	rts
-
-
-@skip_change_bank:
-    dec		tmp1
-    bne		@read_byte
-
-    lda		#CH376_BYTE_RD_GO
-    sta		CH376_COMMAND
-    jsr		_ch376_wait_response
-
-    ; _ch376_wait_response renvoie 1 en cas d'erreur et le CH376 ne renvoie pas de valeur 0
-    ; donc le bne devient un saut inconditionnel!
-    bne		@loop
- @finished:
-	jsr		restore_twil_registers
-
-	lda		#$00
-	cli
-	rts
-
-.endproc
-
-
-
-.proc _open_and_read_file
-	sta		ptr1
-	stx 	ptr1+1
-
-    lda     #CH376_SET_FILE_NAME        ;$2f
-    sta     CH376_COMMAND
-    lda     #'/'
-
-    sta     CH376_DATA
-	lda		#$00
-    sta     CH376_DATA
-	jsr		_ch376_file_open
-
-
-reset_label:
-
-    lda     #CH376_SET_FILE_NAME        ;$2f
-    sta     CH376_COMMAND
-
-	ldy		#$00
-@L1:	
-	lda     (ptr1),y
-    beq 	@S1
-  	
-  	cmp     #'a'                        ; 'a'
-  	bcc     @do_not_uppercase
-  	cmp     #'z'+1                        ; 'z'
-  	bcs     @do_not_uppercase
-  	sbc     #$1F
-@do_not_uppercase:
-	sta		CH376_DATA
-	iny
-	bne		@L1
-	lda		#$00
-@S1:
-	sta		CH376_DATA
-	
-	jsr		_ch376_file_open
-
-    cmp		#CH376_ERR_MISS_FILE
-    bne 	start
-
-	lda		#$01
-	cli
-	rts
-start:
-	lda		#$00
-	rts
-.endproc
 
 .proc _program_sector
 	sei
@@ -238,82 +59,27 @@ start:
 	sta		current_bank
 
 reset_label:
-    ;sty     TR6
+
     ldy     #O_RDONLY
-    ;ldx     TR6
 
 	lda     ptr1
 	ldx	    ptr1+1
 	.byte   $00,XOPEN
-	cpx		#$FF
-	bne		@start	
+	
 	cmp		#$FF
 	bne		@start
+	cpx		#$FF
+	bne		@start		
+
 	jmp     @exit
 
 
-
-	;lda     #CH376_SET_FILE_NAME        ;$2f
-    ;sta     CH376_COMMAND
-
-
-@go:
-	ldy		#$00
-
-
-
-@L1:	
-	lda     (ptr1),y
-    beq 	@S1
-  	cmp		#'/'
-	beq		@next_path
-  	cmp     #'a'                        ; 'a'
-  	bcc     @do_not_uppercase
-  	cmp     #'z'+1                        ; 'z'
-  	bcs     @do_not_uppercase
-  	sbc     #$1F
-@do_not_uppercase:
-	sta		CH376_DATA
-	sta		$bb80,y
-	iny
-	bne		@L1
-	lda		#$00
-@S1:
-
-	sta		CH376_DATA
-	
-	jsr		_ch376_file_open
-
-    cmp		#CH376_ERR_MISS_FILE
-    bne 	@start
 @exit:	
 	jsr		restore_twil_registers
 	lda		#$01
 	cli
 	rts
-@next_path:
-	sta		$bb80,y
-	cpy		#$00
-	bne		@S2
 
-    lda     #'/'
-    sta     CH376_DATA
-
-
-@S2:	
-	iny
-	sty 	savey
-	lda     #$00
-	sta		CH376_DATA
-	jsr		_ch376_file_open
-
-    cmp		#CH376_ERR_MISS_FILE
-	beq     @exit
-
-    lda     #CH376_SET_FILE_NAME        ;$2f
-    sta     CH376_COMMAND	
-	ldy     savey
-	jmp     @L1
 
 @start:
 	
