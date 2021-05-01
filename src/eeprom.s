@@ -245,16 +245,16 @@ reset_label:
 	lda     ptr1
 	ldx	    ptr1+1
 	.byte   $00,XOPEN
-	cmp		#$00
-	bne		@start
-	cpy		#$00
+	cpx		#$FF
+	bne		@start	
+	cmp		#$FF
 	bne		@start
 	jmp     @exit
 
 
 
-	lda     #CH376_SET_FILE_NAME        ;$2f
-    sta     CH376_COMMAND
+	;lda     #CH376_SET_FILE_NAME        ;$2f
+    ;sta     CH376_COMMAND
 
 
 @go:
