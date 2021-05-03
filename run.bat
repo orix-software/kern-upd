@@ -1,6 +1,7 @@
 @echo off
 
-SET ORICUTRON="..\..\..\..\oricutron-iss2-debug\"
+SET ORICUTRON="D:\users\plifp\Onedrive\oric\oricutron_twilighte"
+
 
 SET RELEASE="30"
 SET UNITTEST="NO"
@@ -16,18 +17,19 @@ SET MYDATE=%mydate% %mytime%
 echo %MYDATE%
 
 
-%CC65%\cl65 -ttelestrat src\orixcfg.c src\eeprom.s src\loadfile.s src/_display_signature_bank.s dependencies/twilighte-lib/twilighte.lib --static-locals --start-addr $1000 -o orixcfg 
+%CC65%\cl65 -I libs/usr/include/ -ttelestrat  src/orixcfg.c src/eeprom.s -o orixcfg libs/lib8/ch376.lib libs/lib8/twil.lib
+
 
 IF "%1"=="NORUN" GOTO End
 mkdir %ORICUTRON%\usbdrive\usr\share\orixcfg
 
-copy orixcfg %ORICUTRON%\sdcard\bin\a > NUL
+copy orixcfg %ORICUTRON%\sdcard\bin\orixcfg > NUL
 copy src/etc/orixcfg/carts.cfg %ORICUTRON%\sdcard\etc\orixcfg\ > NUL
 
 
 
 cd %ORICUTRON%
-oricutron -mt 
+oricutron
 
 
 :End

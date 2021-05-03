@@ -1,6 +1,10 @@
 [![Build Status](https://travis-ci.org/orix-software/orixcfg.svg?branch=master)](https://travis-ci.org/orix-software/orixcfg)
 
-Software to update EEPROM for Twilighte card.
+Github action
+[![build](https://github.com/orix-software/orixcfg/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/orix-software/orixcfg/actions/workflows/main.yml)
+
+
+Software to update EEPROM for Twilighte card, flush ram etc
 
 This tool is in bin/ folder
 
