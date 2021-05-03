@@ -31,14 +31,30 @@ void usage() {
   //printf("orixcfg -w -s X -b Y romfile16KB : Load romfile in bank Y into set X in RAM slot\n");
   printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
   printf("orixcfg -w -f : Clear all rams\n");
-  printf("orixcfg -l 16kbfile.rom -b X: Load 16kbfile into bank X\n");
+  printf("orixcfg -w -s X -b Y romfiles : Load 16kbfile into bank X\n");
+  //printf("orixcfg -l 16kbfile.rom -b X: Load 16kbfile into bank X\n");
   //printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
   return;
 }
 
 void version() {
-	printf("v2021.3\n");
+	printf("v2021.2.1\n");
 }
+
+void check_format_kernel_set() {
+
+	// # orixcfg -k myfile
+	// .byte "KERNELSET"
+	// .res 20 header (in the future)
+}
+
+void check_format_rom_bank() {
+	// # orixcfg -l monitor.ROR -b 15
+	// .byte "ROMORIX" or "ROMSTAND"
+	// for ROMORIX :
+	//  .res 2 ; kernel min version
+}
+
 
 void getEEPROMId() {
 	unsigned char manufacturer_code;

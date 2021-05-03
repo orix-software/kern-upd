@@ -72,6 +72,7 @@ reset_label:
 	bne		@start		
 
 	jmp     @exit
+@error:
 
 
 @exit:	
@@ -99,7 +100,7 @@ reset_label:
 	lda		sector_to_update
 	sta  	twilighte_banking_register
 
-	jsr	    _erase_sector
+
 
 	lda		#'1'
 	sta     value_to_display
@@ -114,10 +115,17 @@ reset_label:
     tay
     jsr		_ch376_set_bytes_read
 
+; This two lines are used to avoid to load a wrong file
+    cmp		#CH376_USB_INT_DISK_READ ; do we read something ? No output
+    bne		@error ; 
+	jsr	    _erase_sector
+	jmp     @start_without_check
+
 @loop:
     cmp		#CH376_USB_INT_DISK_READ
     bne		@finished
 
+@start_without_check:
     lda		#CH376_RD_USB_DATA0
     sta		CH376_COMMAND
     lda		CH376_DATA
@@ -133,7 +141,7 @@ reset_label:
 	sta     $bb80+25*40+21
 @skip_line2:
 
-  @read_byte:
+@read_byte:
 	
     lda		CH376_DATA
 	pha
