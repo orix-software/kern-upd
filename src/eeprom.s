@@ -4,6 +4,7 @@
 .include "errno.inc"              ; from cc65
 .include "cpu.mac"                ; from cc65
 
+.define PROGRESS_BAR_CART_COUNT 1950
 
 
 .include "../libs/usr/arch/include/ch376.inc"
@@ -47,6 +48,14 @@ twilighte_register         := $342
 	jsr     save_twil_registers
 	; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
 	
+
+	lda     #$01
+	sta     pos_bar
+	lda     #<PROGRESS_BAR_CART_COUNT
+	sta     progress_bar
+	lda     #>PROGRESS_BAR_CART_COUNT
+	sta     progress_bar+1	
+
 	
     lda     sector_to_update ; pour debug FIXME, cela devrait être à 4
     sta  	twilighte_banking_register
@@ -83,7 +92,17 @@ reset_label:
 
 
 @start:
-	
+	lda     #'|'
+	sta     $bb80+40
+	sta     $bb80+39+40
+	sta     $bb80+35+40	
+	lda     #'%'
+	sta     $bb80+38+40
+	lda     #'0'
+	sta     $bb80+37+40
+
+
+
 	lda		counter_display
 	bne		@skip_line
 
@@ -170,6 +189,9 @@ reset_label:
 
 	lda		#$C0
 	sta		ptr3+1	
+
+
+
 
 
 	ldx     current_bank
@@ -272,12 +294,64 @@ wait_write:
 	bne		wait_write
 	inc		ptr3
 	bne		@S1
-	inc		ptr3+1
+	inc     ptr3+1
 @S1:
+    lda     progress_bar
+    bne     @again
+    dec     progress_bar+1
+@again:
+	dec     progress_bar
+	
+	lda     progress_bar+1
+	bne     @S3
 
+	lda     progress_bar
+	bne     @S3
+
+	ldx     pos_bar
+	lda     #'='
+	sta     $bb80+40,x
+	inc     pos_bar
+	
+	lda     #<PROGRESS_BAR_CART_COUNT
+	sta     progress_bar
+	lda     #>PROGRESS_BAR_CART_COUNT
+	sta     progress_bar+1
+
+
+	jsr     inc_progress_bar
+	jsr     inc_progress_bar
+	jsr     inc_progress_bar
+@S3:
 	
 	rts
 .endproc
+
+.proc inc_progress_bar
+	inc     $bb80+37+40
+	lda 	$bb80+37+40
+	cmp     #':'
+	bne     @S3
+	lda     #'0'
+	sta     $bb80+37+40
+	lda     $bb80+36+40
+	cmp     #' '
+	bne     @S4
+	lda     #'0'
+	sta     $bb80+36+40
+@S4:
+	inc     $bb80+36+40
+
+
+@S3:	
+
+	rts
+.endproc
+
+progress_bar:
+	.res 2
+pos_bar:
+	.res 1	
 
 .proc wait
 	ldy		#$02

@@ -31,14 +31,15 @@ void usage() {
   //printf("orixcfg -w -s X -b Y romfile16KB : Load romfile in bank Y into set X in RAM slot\n");
   printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
   printf("orixcfg -w -f : Clear all rams\n");
-  printf("orixcfg -w -s X -b Y romfiles : Load 16kbfile into bank X\n");
-  //printf("orixcfg -l 16kbfile.rom -b X: Load 16kbfile into bank X\n");
-  //printf("orixcfg -w -s X -b Y -t : Display RAM signature in set X and bank Y\n");
+  //printf("orixcfg -w -s X -b Y romfiles : Load 16kbfile into bank X\n");
+  //printf("orixcfg -k [file] : Update kernel with file\n");
+  printf("orixcfg -b XX -l file : Load file into XX bank\n");
+
   return;
 }
 
 void version() {
-	printf("v2021.2.1\n");
+	printf("v2021.3\n");
 }
 
 void check_format_kernel_set() {
@@ -92,6 +93,7 @@ int main(int argc,char *argv[]) {
 	unsigned char physical_bank;
 	unsigned int register_bank;
 	unsigned char twil_register;
+	FILE *fp;
 
 
   	if (argc==1) {
@@ -120,29 +122,68 @@ int main(int argc,char *argv[]) {
     	return 0;
 	} 
 */
-	if (strcmp(argv[1],"-l")==0 && strcmp(argv[3],"-b")==0 ) {
-		if (argv[4]=="") {
+
+	if (strcmp(argv[1],"-k")==0) {
+		if (argv[2]=="") {
+			printf("Missing rol file");
+			return 0;
+		}
+		fp=fopen(argv[2],"r");
+		if (fp==NULL)  {
+			printf("Can't open %s",argv[2]);
+			return 0;
+		}
+		fclose(fp);
+/*
+
+		printf("You have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
+		printf("Would you like to continue y/N (Oric will reboot)?\n");
+		mykey=cgetc();
+		if (mykey!='y') return 0;
+		printf("Updating kernel ... );
+		printf("Please wait ... \n");
+		ret=program_sector(argv[4],atoi(argv[3]),1);
+    	if (ret==1) printf("File not found : %s\n",argv[4]);
+*/
+ 
+	}
+
+
+	if (strcmp(argv[3],"-l")==0 && strcmp(argv[1],"-b")==0 ) {
+		if (argv[2]=="") {
 			printf("Missing bank id");
+			return 0;
 		}
 
-		bank=atoi(argv[4]);
+		if (argv[4]=="") {
+			printf("Missing file to load");
+			return 0;
+		}
+
+		bank=atoi(argv[2]);
 		if (bank>64) {
 			printf("There is only 64 banks\n");
 			return 1;
 		}
 		if (bank>32) {
+			fp=fopen(argv[4],"r");
+			if (fp==NULL)  {
+				printf("Can't open %s\n",argv[4]);
+				return 0;
+			}
+			fclose(fp);
+
 			register_bank=twil_get_registers_from_id_bank(bank);
 			twil_register=register_bank>>8;
 			physical_bank=register_bank&0xFF;
-			printf("Loading : %s into bank %d\n",argv[3],bank);
+			printf("Loading : %s into bank %d\n",argv[4],bank);
 			//twil_program_rambank(unsigned char bank, char *file, unsigned char set); 
-			ret=twil_program_rambank(physical_bank, argv[2], twil_register);
-			if (ret==1) printf("File not found %s\n",argv[2]);
+			ret=twil_program_rambank(physical_bank, argv[4], twil_register);
+			if (ret==1) printf("File not found %s\n",argv[4]);
     		return 0;
-			//printf("Bank %d Set %d\n",bank,twil_register);
 		}
 		else {
-			printf("Impossible to program rom bank with this switch, use '-r -s X romfile64KB.r64' flags for EEPROM management\n");
+			printf("Impossible to program rom bank with this switch, use '-r -s X romfile64KB.r64' flags for EEPROM management %s %s\n",argv[3],argv[1]);
 		}
 	}
 
@@ -186,14 +227,20 @@ int main(int argc,char *argv[]) {
 			mykey=cgetc();
 			if (mykey!='y') return 0;
 		}
-
-	printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
-	printf("Please wait ... \n");
+	if (atoi(argv[3])==4)  {
+		clrscr();
+		cputsxy(0,0,"Updating kernel ...");
+	}
+	else {
+		printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
+		printf("Please wait ... \n");
+	}
 	ret=program_sector(argv[4],atoi(argv[3]),1);
     if (ret==1) printf("File not found : %s\n",argv[4]);
     
     return 0;
-  	} 
+  	}
+    printf("Wrong parameters\n"); 
 
 				
 }
