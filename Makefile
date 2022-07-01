@@ -25,6 +25,7 @@ SOURCE=src/$(PROGRAM).c
 
 
 code: $(SOURCE)
+	./configure
 	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) libs/lib8/ch376.lib libs/lib8/twil.lib
 
 
