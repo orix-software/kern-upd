@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/orix-software/orixcfg.svg?branch=master)](https://travis-ci.org/orix-software/orixcfg)
-
 Github action
 [![build](https://github.com/orix-software/orixcfg/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/orix-software/orixcfg/actions/workflows/main.yml)
 

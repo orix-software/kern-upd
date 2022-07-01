@@ -6,7 +6,6 @@
 
 .define PROGRESS_BAR_CART_COUNT 1950
 
-
 .include "../libs/usr/arch/include/ch376.inc"
 
 .import _ch376_set_bytes_read
@@ -31,41 +30,39 @@ twilighte_register         := $342
 
 .proc _program_sector
 	sei
-	sta		counter_display
+	sta     counter_display
 
-	jsr 	popa
-	sta		sector_to_update
+	jsr     popa
+	sta     sector_to_update
 
-	lda		#$00
-	sta	    pos_cputc
+	lda     #$00
+	sta     pos_cputc
 
-	jsr 	popax ; Get file
+	jsr     popax ; Get file
 	sta     ptr1
-	stx		ptr1+1
+	stx     ptr1+1
 
 	lda     #$00
 	sta     posx
 	jsr     save_twil_registers
 	; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
-	
-
 	lda     #$01
 	sta     pos_bar
 	lda     #<PROGRESS_BAR_CART_COUNT
 	sta     progress_bar
 	lda     #>PROGRESS_BAR_CART_COUNT
-	sta     progress_bar+1	
+	sta     progress_bar+1
 
-	
+
     lda     sector_to_update ; pour debug FIXME, cela devrait être à 4
     sta  	twilighte_banking_register
 
-	lda		twilighte_register
-	and		#%11011111
-	sta		twilighte_register
+    lda     twilighte_register
+    and     #%11011111
+    sta     twilighte_register
 
-	lda		#$01
-	sta		current_bank
+	lda     #$01
+	sta     current_bank
 
 reset_label:
 
@@ -74,125 +71,116 @@ reset_label:
 	lda     ptr1
 	ldx	    ptr1+1
 	.byte   $00,XOPEN
-	
-	cmp		#$FF
-	bne		@start
-	cpx		#$FF
-	bne		@start		
+
+	cmp     #$FF
+	bne     @start
+	cpx     #$FF
+	bne     @start
 
 	jmp     @exit
 @error:
 
 
-@exit:	
-	jsr		restore_twil_registers
-	lda		#$01
+@exit:
+	jsr     restore_twil_registers
+	lda     #$01
 	cli
 	rts
 
 
 @start:
+    ; display progress bar
 	lda     #'|'
 	sta     $bb80+40
 	sta     $bb80+39+40
-	sta     $bb80+35+40	
+	sta     $bb80+35+40
 	lda     #'%'
 	sta     $bb80+38+40
 	lda     #'0'
 	sta     $bb80+37+40
 
+	lda     counter_display
+	bne     @skip_line
 
-
-	lda		counter_display
-	bne		@skip_line
-
-	lda		#' '
-	ldx		#$00
-@L5:	
-	sta		$bb80+25*40,x
+	lda     #' '
+	ldx     #$00
+@L5:
+	sta     $bb80+25*40,x
 	inx
-	cpx		#40*3
+	cpx     #40*3
 	bne     @L5
 
 @skip_line:
-	; Erase 
-	lda		sector_to_update
-	sta  	twilighte_banking_register
+	; Erase
+	lda     sector_to_update
+	sta     twilighte_banking_register
 
-
-
-	lda		#'1'
+	lda     #'1'
 	sta     value_to_display
 
-	lda		#$00
-	sta		ptr3
+	lda     #$00
+	sta     ptr3
 
-	lda		#$C0
-	sta		ptr3+1	
+	lda     #$C0
+	sta     ptr3+1
 
-    lda		#$FF
+    lda     #$FF
     tay
-    jsr		_ch376_set_bytes_read
+    jsr     _ch376_set_bytes_read
 
 ; This two lines are used to avoid to load a wrong file
-    cmp		#CH376_USB_INT_DISK_READ ; do we read something ? No output
-    bne		@error ; 
-	jsr	    _erase_sector
+    cmp     #CH376_USB_INT_DISK_READ ; do we read something ? No output
+    bne     @error ;
+	jsr     _erase_sector
 	jmp     @start_without_check
 
 @loop:
-    cmp		#CH376_USB_INT_DISK_READ
-    bne		@finished
+    cmp     #CH376_USB_INT_DISK_READ
+    bne     @finished
 
 @start_without_check:
-    lda		#CH376_RD_USB_DATA0
-    sta		CH376_COMMAND
-    lda		CH376_DATA
-	sta		tmp1
+    lda     #CH376_RD_USB_DATA0
+    sta     CH376_COMMAND
+    lda     CH376_DATA
+	sta     tmp1
     ; Tester si userzp == 0?
 
-	lda		counter_display
-	bne		@skip_line2
+	lda     counter_display
+	bne     @skip_line2
 
-	lda		current_bank
+	lda     current_bank
 	clc
-    adc		#$30
+    adc     #$30
 	sta     $bb80+25*40+21
 @skip_line2:
 
 @read_byte:
-	
-    lda		CH376_DATA
+
+    lda     CH376_DATA
 	pha
-	jsr		write_kernel
+	jsr     write_kernel
 	pla
-
-
 
     lda     value_to_display
 @display:
-    ldx		posx
-    ;sta		$bb80+40,x
-	inx
-	stx		posx
+    ldx     posx
 
-	lda		ptr3+1
+    inx
+    stx     posx
+
+	lda     ptr3+1
 	bne     @skip_change_bank
 
-	lda		ptr3
-	bne     @skip_change_bank	
+	lda     ptr3
+	bne     @skip_change_bank
 
-	inc		value_to_display
+	inc     value_to_display
 
-	lda		#$00
-	sta		ptr3
+	lda     #$00
+	sta     ptr3
 
-	lda		#$C0
-	sta		ptr3+1	
-
-
-
-
+	lda     #$C0
+	sta     ptr3+1
 
 	ldx     current_bank
 	inx
@@ -201,13 +189,13 @@ reset_label:
 	bne     @skip_change_bank
 	; end we stop
 
-	jsr		restore_twil_registers
-	lda		sector_to_update
-	cmp		#$04
-	bne		@not_kernel_update
+	jsr     restore_twil_registers
+	lda     sector_to_update
+	cmp     #$04
+	bne     @not_kernel_update
 	; Reset now
-	lda		#$07
-	jsr		select_bank
+	lda     #$07
+	jsr     select_bank
 	jmp     ($fffa)
 @not_kernel_update:
 	lda     #$00
@@ -217,55 +205,50 @@ reset_label:
 
 @skip_change_bank:
 
-    dec		tmp1
-    bne		@read_byte
+    dec     tmp1
+    bne     @read_byte
 
-    lda		#CH376_BYTE_RD_GO
-    sta		CH376_COMMAND
-    jsr		_ch376_wait_response
+    lda     #CH376_BYTE_RD_GO
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
 
     ; _ch376_wait_response renvoie 1 en cas d'erreur et le CH376 ne renvoie pas de valeur 0
     ; donc le bne devient un saut inconditionnel!
-    bne		@loop
+    bne     @loop
  @finished:
 
-	jsr		restore_twil_registers
+	jsr     restore_twil_registers
 
-	lda		sector_to_update
-	cmp		#$04
-	bne		@not_kernel_update2
-	lda		#$11
-	sta		$bb80
+	lda     sector_to_update
+	cmp     #$04
+	bne     @not_kernel_update2
+	lda     #$11
+	sta     $bb80
 	; Reset now
-	lda		#$07
-	jsr		select_bank
+	lda     #$07
+	jsr     select_bank
 	jmp     ($fffa)
 
 @not_kernel_update2:
-	lda		#$00
+	lda     #$00
 	cli
 	rts
-
 
 str_slash:
 	.asciiz "/"
 posx:
-	.res 1	
-savey:	
+	.res 1
+savey:
 	.res 1
 .endproc
 
-current_bank:
-.res	1
-counter_display:
-	.res 1
 
 .proc write_kernel
 
 
 write_loop:
 	pha
-	
+
 	lda		#$A0
 	jsr		sequence
 
@@ -277,7 +260,7 @@ write_loop:
 
 	lda		counter_display
 	bne		@skip_line
-	
+
 	lda     #'#'
 	jsr     _cputc_custom
 
@@ -301,7 +284,7 @@ wait_write:
     dec     progress_bar+1
 @again:
 	dec     progress_bar
-	
+
 	lda     progress_bar+1
 	bne     @S3
 
@@ -312,7 +295,7 @@ wait_write:
 	lda     #'='
 	sta     $bb80+40,x
 	inc     pos_bar
-	
+
 	lda     #<PROGRESS_BAR_CART_COUNT
 	sta     progress_bar
 	lda     #>PROGRESS_BAR_CART_COUNT
@@ -323,7 +306,7 @@ wait_write:
 	jsr     inc_progress_bar
 	jsr     inc_progress_bar
 @S3:
-	
+
 	rts
 .endproc
 
@@ -343,19 +326,15 @@ wait_write:
 	inc     $bb80+36+40
 
 
-@S3:	
+@S3:
 
 	rts
 .endproc
 
-progress_bar:
-	.res 2
-pos_bar:
-	.res 1	
 
 .proc wait
 	ldy		#$02
-@S3:	
+@S3:
 	ldx		#$05
 @S1:
 	dex
@@ -363,7 +342,7 @@ pos_bar:
 	dey
 	bne     @S3
 	rts
-.endproc	
+.endproc
 
 _cputc_custom:
 		ldx		pos_cputc
@@ -375,10 +354,9 @@ _cputc_custom:
 		bne		@out
 		ldx		#$00
 		stx		pos_cputc
-@out:		
+@out:
 		rts
-pos_cputc:		
-.res 1
+
 
       .import         __hextab
 
@@ -403,22 +381,25 @@ _cputhex8_custom:
         lda     __hextab,y
         jmp     _cputc_custom
 
+pos_cputc:
+.res 1
+
 
 .proc	save_twil_registers
-    lda		VIA2::PRA   
+    lda		VIA2::PRA
 	sta		save
-	
+
 	lda		twilighte_banking_register
 	sta		twilighte_banking_register_save
 
 	lda		twilighte_register
 	sta		twilighte_register_save
     rts
-.endproc	
+.endproc
 
 .proc	restore_twil_registers
     lda		save
-	sta		VIA2::PRA 
+	sta		VIA2::PRA
 
 	lda		twilighte_banking_register_save
 	sta		twilighte_banking_register
@@ -434,7 +415,7 @@ _cputhex8_custom:
 	php
 	sta		sector_to_update
 
-    lda		VIA2::PRA   
+    lda		VIA2::PRA
 	sta		save
 
 	lda		twilighte_banking_register
@@ -442,7 +423,19 @@ _cputhex8_custom:
 
 	lda		twilighte_register
 	sta		twilighte_register_save
-	
+
+	lda		#$00
+	sta		twilighte_banking_register
+
+    lda		VIA2::PRA
+	and		#%11111000
+	ora		#%00000001
+	sta		VIA2::PRA
+
+	lda		twilighte_register
+	and		#%11011111
+	sta		twilighte_register
+
 
 	lda     #$90
 	jsr     sequence
@@ -451,27 +444,27 @@ _cputhex8_custom:
 
     lda     $C001 ; device ID
     sta     tmp+1
-	
+
 	; Reset eeprom autoselect
 	lda		#$F0
 	sta		$C000
 
     lda		save
-	sta		VIA2::PRA 
+	sta		VIA2::PRA
 	lda		twilighte_banking_register_save
 	sta		twilighte_banking_register
 	lda		twilighte_register_save
 	sta		twilighte_register
-	
+
 	lda		tmp ; manufacturer
-	ldx		tmp+1 ; 
+	ldx		tmp+1 ;
 
 	plp
-	cli	
+	cli
 
 	rts
 tmp:
-	.res 2	
+	.res 2
 
 .endproc
 
@@ -490,50 +483,47 @@ tmp:
 .endproc
 
 .proc select_bank
-   sta	VIA2::PRA
-  rts
+    sta	VIA2::PRA
+    rts
 .endproc
 
 .proc sequence
-	pha
-	lda		sector_to_update
-	sta		twilighte_banking_register ; Set to the first 64KB bank
-	; $5555 
-	lda     #$01					   ; set first bank
-	jsr	    select_bank
-	
-	lda		#$AA
-	sta		$D555					; $5555
+    pha
+    lda		sector_to_update
+    sta		twilighte_banking_register ; Set to the first 64KB bank
+    ; $5555
+    lda     #$01					   ; set first bank
+    jsr	    select_bank
 
+    lda		#$AA
+    sta		$D555					; $5555
 
-	lda		#$04
-	jsr		select_bank
-	
-	lda		#$55
-	sta		$EAAA                  ; $2AAA
+    lda		#$04
+    jsr		select_bank
 
+    lda		#$55
+    sta		$EAAA                  ; $2AAA
 
-
-	lda		#$01
-	jsr		select_bank          ;$5555
-	pla
-	sta		$D555
-	rts
+    lda		#$01
+    jsr		select_bank          ;$5555
+    pla
+    sta		$D555
+    rts
 .endproc
 
 .proc _erase_sector
 	php
 	sei
-	
+
 	lda		#$80
 	jsr		sequence
-	
+
 	lda     #$AA
 	sta		$D555
 
 	lda		#$04
 	jsr		select_bank
-	
+
 	lda		#$55
 	sta		$EAAA                  ; $2AAA
 
@@ -551,10 +541,7 @@ wait_erase:
 .proc _check_flash_protection
 	php
 	sei
-	;
-	;ldy #0
-	;lda (sp),y
-;	jsr select_sector
+
 	lda #$AA
 	sta $C555
 	lda #$55
@@ -571,15 +558,22 @@ wait_erase:
 .endproc
 
 save:
-    .res 1	
+    .res 1
 twilighte_banking_register_save:
-    .res 1		
+    .res 1
 twilighte_register_save:
-    .res 1		
+    .res 1
 sector_to_update:
-	.res	1
+	.res 1
 value_to_display:
 	.res 1
-idbank:	
-	.res 1	
-
+idbank:
+	.res 1
+current_bank:
+	.res 1
+counter_display:
+	.res 1
+progress_bar:
+	.res 2
+pos_bar:
+	.res 1
