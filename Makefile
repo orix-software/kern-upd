@@ -32,8 +32,8 @@ code: $(SOURCE)
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
 	mkdir -p build/usr/src/$(PROGRAM)/src/
-	mkdir  build/bin
-	cp  $(PROGRAM)  build/bin
+	mkdir -p build/bin
+	cp  $(PROGRAM)  build/bin/
 	#cp configure build/usr/src/$(PROGRAM)/
 	#cp Makefile build/usr/src/$(PROGRAM)/
 	cp README.md build/usr/src/$(PROGRAM)/
