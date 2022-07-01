@@ -1,3 +1,8 @@
+# 2022.3
+
+* Now orixcfg -i works again
+
+
 # 2021.2
 
 * Add new format of rom when we flush ram
