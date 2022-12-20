@@ -31,7 +31,7 @@ code: $(SOURCE)
 	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES) -o 1256 --start-addr 2304 libs/lib8/ch376.lib libs/lib8/twil.lib
 	# Reloc
 	chmod +x dependencies/orix-sdk/bin/relocbin.py3
-	dependencies/orix-sdk/bin/relocbin.py3 -o build/bin/romupd -2 1000 1256
+	dependencies/orix-sdk/bin/relocbin.py3 -o romupd -2 1000 1256
 
 
 srccode: $(SOURCE)
@@ -39,6 +39,7 @@ srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/src/
 	mkdir -p build/bin
 	cp  $(PROGRAM)  build/bin/
+	cp  romupd  build/bin/
 	cp README.md build/usr/src/$(PROGRAM)/
 	cp -adpR src/* build/usr/src/$(PROGRAM)/src/
 	sh docs/builddocs.sh
