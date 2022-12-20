@@ -38,8 +38,8 @@ srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
 	mkdir -p build/usr/src/$(PROGRAM)/src/
 	mkdir -p build/bin
-	cp  $(PROGRAM)  build/bin/
-	cp  romupd  build/bin/
+	cp $(PROGRAM)  build/bin/
+	cp romupd  build/bin/
 	cp README.md build/usr/src/$(PROGRAM)/
 	cp -adpR src/* build/usr/src/$(PROGRAM)/src/
 	sh docs/builddocs.sh
