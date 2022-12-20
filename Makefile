@@ -20,23 +20,28 @@ endif
 all : code srccode
 .PHONY : all
 
-
 SOURCE=src/$(PROGRAM).c
-
 
 code: $(SOURCE)
 	./configure
 	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) libs/lib8/ch376.lib libs/lib8/twil.lib
+	#relocation
+	#rm src/eeprom.o
+	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES)  -o 1000 --start-addr 2048 libs/lib8/ch376.lib libs/lib8/twil.lib
+	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES) -o 1256 --start-addr 2304 libs/lib8/ch376.lib libs/lib8/twil.lib
+	# Reloc
+	chmod +x dependencies/orix-sdk/bin/relocbin.py3
+	dependencies/orix-sdk/bin/relocbin.py3 -o romupd -2 1000 1256
 
 
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
 	mkdir -p build/usr/src/$(PROGRAM)/src/
 	mkdir -p build/bin
-	cp  $(PROGRAM)  build/bin/
-	#cp configure build/usr/src/$(PROGRAM)/
-	#cp Makefile build/usr/src/$(PROGRAM)/
+	cp $(PROGRAM)  build/bin/
+	cp romupd  build/bin/
 	cp README.md build/usr/src/$(PROGRAM)/
 	cp -adpR src/* build/usr/src/$(PROGRAM)/src/
+	sh docs/builddocs.sh
 
 

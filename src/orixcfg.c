@@ -36,7 +36,7 @@ void usage() {
 }
 
 void version() {
-    printf("v2022.3\n");
+    printf("v2023.1\n");
 }
 
 void check_format_kernel_set() {
@@ -51,7 +51,6 @@ void check_format_rom_bank() {
 	// for ROMORIX :
 	//  .res 2 ; kernel min version
 }
-
 
 void getEEPROMId() {
     unsigned char manufacturer_code;

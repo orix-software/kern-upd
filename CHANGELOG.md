@@ -1,4 +1,9 @@
-# 2022.3
+# 2023.1
+
+* generate man pages
+* romupd in relocation format
+
+# 2022.4
 
 * Now orixcfg -i works again
 
