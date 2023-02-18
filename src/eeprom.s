@@ -18,11 +18,13 @@
 
 .export _program_sector
 
+.export select_bank,write_kernel,_erase_sector,value_to_display,twilighte_register,sector_to_update,pos_bar,save_twil_registers, _read_eeprom_manufacturer, progress_bar,pos_cputc, restore_twil_registers,counter_display, twilighte_banking_register, current_bank
+
 .importzp ptr1,ptr2,ptr3
 
 .import popax,popa
 .importzp tmp1
-
+.import sequence_39sf040
 
 twilighte_banking_register := $343
 twilighte_register         := $342
@@ -37,7 +39,7 @@ twilighte_register         := $342
     lda     #$00
     sta     pos_cputc
 
-    jsr     popax ; Get file
+    jsr     popax ; Get filepath
     sta     ptr1
     stx     ptr1+1
 
@@ -51,7 +53,6 @@ twilighte_register         := $342
     sta     progress_bar
     lda     #>PROGRESS_BAR_CART_COUNT
     sta     progress_bar+1
-
 
     lda     sector_to_update ; pour debug FIXME, cela devrait être à 4
     sta     twilighte_banking_register
@@ -240,9 +241,8 @@ savey:
 .endproc
 
 
+
 .proc write_kernel
-
-
 write_loop:
     pha
 
@@ -299,7 +299,6 @@ wait_write:
     lda     #>PROGRESS_BAR_CART_COUNT
     sta     progress_bar+1
 
-
     jsr     inc_progress_bar
     jsr     inc_progress_bar
     jsr     inc_progress_bar
@@ -323,11 +322,9 @@ wait_write:
 @S4:
     inc     $bb80+36+40
 
-
 @S3:
     rts
 .endproc
-
 
 .proc wait
     ldy     #$02
@@ -354,7 +351,7 @@ _cputc_custom:
 @out:
     rts
 
-      .import         __hextab
+    .import         __hextab
 
 _cputhex16_custom:
     pha                     ; Save low byte
@@ -431,9 +428,11 @@ pos_cputc:
     and     #%11011111
     sta     twilighte_register
 
+    ;lda     #$90
+    ;jsr     sequence
+	lda     #$90
+	jsr		sequence_39sf040
 
-    lda     #$90
-    jsr     sequence
     lda     $C000 ; manufacturer
     sta     tmp
 

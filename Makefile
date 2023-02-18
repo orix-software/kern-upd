@@ -3,7 +3,7 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/eeprom.s
+LDFILES=src/eeprom.s src/39SF040/_program_sector_38SF040.s src/39SF040/_erase_sector_39SF040.s  src/39SF040/_sequence_39sf040.s
 
 ifeq ($(CC65_HOME),)
         CC = cl65
@@ -17,13 +17,15 @@ else
         AR = $(CC65_HOME)/bin/ar65
 endif
 
-all : code srccode
+all : init code srccode
 .PHONY : all
 
 SOURCE=src/$(PROGRAM).c
 
-code: $(SOURCE)
+init: $(SOURCE)
 	./configure
+
+code: $(SOURCE)
 	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) libs/lib8/ch376.lib libs/lib8/twil.lib
 	#relocation
 	#rm src/eeprom.o
@@ -32,7 +34,6 @@ code: $(SOURCE)
 	# Reloc
 	chmod +x dependencies/orix-sdk/bin/relocbin.py3
 	dependencies/orix-sdk/bin/relocbin.py3 -o romupd -2 1000 1256
-
 
 srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/
