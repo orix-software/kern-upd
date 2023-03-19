@@ -4,23 +4,28 @@
 #include <stdlib.h>
 #include <telestrat.h>
 
-#define VERSION "v2023.1.1"
-
-#define EEPROM_29F040  0x00
-#define EEPROM_39SF040 0x02
+#include <errno.h>
+#include <unistd.h>
+//#include "_file.h"
 
 #include "twil.h"
 
+#define VERSION "v2023.X"
+
+#define EEPROM_29F040  0x01
+#define EEPROM_39SF040 0x02
+
 extern unsigned char program_sector(unsigned char *file, unsigned char sector, unsigned char counterdisplay);
-
 extern unsigned char program_bank_38SF040(unsigned char *file, unsigned char sector);
-
 extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank, unsigned char bank64id);
-
 extern unsigned int read_eeprom_manufacturer(unsigned char sector);
-
 extern unsigned char * display_signature_bank(unsigned char sector,unsigned char bank);
 
+
+extern void xexec(char *str);
+extern void crlf();
+extern void print(char *string);
+extern void println(char *string);
 
 #define MAX_SLOT 4
 #define MAX_LENGTH_OF_PATH 50
@@ -30,14 +35,14 @@ unsigned char current_set=0;
 FILE *fp;
 
 void usage() {
-  printf("usage:\n");
-  printf("orixcfg -i : displays info\n");
-  printf("orixcfg -v : displays version\n");
-  printf("orixcfg -h : displays help\n");
-  printf("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X\n");
-  printf("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y\n");
-  printf("orixcfg -w -f : Clear all rams\n");
-  printf("orixcfg -b XX -l file : Load file into XX bank\n");
+  println("usage:");
+  println("orixcfg -i : displays info");
+  println("orixcfg -v : displays version");
+  println("orixcfg -h : displays help");
+  println("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X");
+  println("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y");
+  println("orixcfg -w -f : Clear all rams");
+  println("orixcfg -b XX -l file : Load file into XX bank");
 
   return;
 }
@@ -45,19 +50,6 @@ void usage() {
 void version() {
     printf(VERSION);
 	printf("\n");
-}
-
-void check_format_kernel_set() {
-    // # orixcfg -k myfile
-    // .byte "KERNELSET"
-    // .res 20 header (in the future)
-}
-
-void check_format_rom_bank() {
-	// # orixcfg -l monitor.ROR -b 15
-	// .byte "ROMORIX" or "ROMSTAND"
-	// for ROMORIX :
-	//  .res 2 ; kernel min version
 }
 
 unsigned char checkEeprom() {
@@ -116,37 +108,37 @@ unsigned char getEEPROMId() {
     status=read_eeprom_manufacturer(0);
     device_code=status>>8;
     manufacturer_code=status&0xFF;
-    printf("Manufacturer : ");
+    print("Manufacturer : ");
     switch (manufacturer_code) {
         case 1:
             supported_device = 1;
-            printf("AMD\n");
+            println("AMD");
             break;
         case 31:
-            printf("Atmel\n");
+            println("Atmel");
             break;
         case 32:
-            printf("ST Microelectronics\n");
+            println("ST Microelectronics");
             break;
         case 0xBF:
-            printf("Microchip\n");
+            println("Microchip");
             break;
         default:
-            printf("unknown\n");
+            println("unknown");
     }
 
-    printf("Device Id : ");
+    print("Device Id : ");
     switch (device_code) {
         case 0x20:
-            printf("29F010\n");
+            println("29F010");
             supported_device = 0;
             break;
         case 0xA4:
-			printf("29F040\n");
+            println("29F040");
             supported_device = 1;
             break;
         case 0xB7:
-			printf("39SF040\n");
+			println("39SF040");
             supported_device = 0;
             break;
         case 0xE2:
@@ -154,19 +146,67 @@ unsigned char getEEPROMId() {
             break;
         default:
             supported_device = 0;
-            printf("unknown\n");
+            println("unknown");
             break;
     }
 
     return supported_device;
 }
 
+FILE *fp;
+unsigned char header_kernel[20];
+unsigned char buffer2[20];
+static unsigned char i=0;
+
+void update_kernel(char *filekernel) {
+	char mkey;
+	unsigned long signature_offset=0;
+    fp=fopen(filekernel, "r");
+	// xexec("lsmem");
+	// cgetc();
+	if (fp==NULL) {
+		print("Impossible to read : ");
+		println(filekernel);
+		return;
+	}
+
+	//fseek(fp, 0xbc07, SEEK_SET);
+	// Get Signature offset
+	fseek(fp, 0xbff0, SEEK_SET);
+	//printf("Val : %d\n");
+	fread( header_kernel, 1, 15, fp );
+
+	//printf("$%x%x\n",header_kernel[9],header_kernel[8]);
+
+	signature_offset =  (header_kernel[9]-0x40) * 256 +7 - 0xFFFF0000;
+	fseek(fp,  signature_offset, SEEK_SET);
+	// print Signature
+	fread( buffer2, 1, 15, fp );
+	fclose(fp);
+	// Checking if signature start with K
+	if (buffer2[0]!='K') {
+		println("Error, this file is not a valid .r64 archive for kernel update");
+		return;
+	}
+
+	print("Update kernel with this version : ");
+	println(buffer2);
+	println("Would you like to update now ?");
+	mkey = cgetc();
+	if (mkey!='y') {
+		println("Operation aborted!");
+	}
+
+
+	return;
+}
+
 unsigned char str_bank[5];
 
-unsigned char filename[200];
+static unsigned char filename[200];
 
 int main(int argc,char *argv[]) {
-    static unsigned char i=0;
+
     static unsigned char j=0;
     unsigned char ret=0;
 	unsigned char eeprom_type=0;
@@ -175,7 +215,8 @@ int main(int argc,char *argv[]) {
     unsigned char physical_bank;
     unsigned int register_bank;
     unsigned char twil_register;
-    FILE *fp;
+
+
 
   	if (argc==1) {
    		usage();
@@ -198,33 +239,25 @@ int main(int argc,char *argv[]) {
   	}
 
 	if (strcmp(argv[1],"-k")==0) {
-		if (argv[2]=="") {
-			printf("Missing rol file");
-			return 0;
-		}
-		fp=fopen(argv[2],"r");
-		if (fp==NULL)  {
-			printf("Can't open %s",argv[2]);
-			return 0;
-		}
-		fclose(fp);
+		update_kernel(argv[2]);
+		return 0;
 	}
 
 	if (strcmp(argv[3],"-l")==0 && strcmp(argv[1],"-b")==0) {
 		if (argv[2]=="") {
-			printf("Missing bank id");
+			print("Missing bank id");
 			return 0;
 		}
 
 		strcpy(filename, argv[4]);
 		if (strcpy(argv[4],"")==0) {
-			printf("Missing file to load\n");
+			println("Missing file to load");
 			return 0;
 		}
 
 		bank=atoi(argv[2]);
 		if (bank>64) {
-			printf("There is only 64 banks\n");
+			println("There is only 64 banks");
 			return 1;
 		}
 		if (bank>32) {
@@ -248,15 +281,23 @@ int main(int argc,char *argv[]) {
 			ret = checkEeprom();
 			if (ret == EEPROM_39SF040) {
 				if (bank < 9 && bank > 4) {
-					printf("Can not program bank 8, 7, 6, 5, use -r -s flag\n");
+					println("Can not program bank 8, 7, 6, 5, use -r and -s flag");
 					return(1);
 				}
 				if (bank == 0) {
-					printf("Can not program bank 0 flag\n");
+					print("Can not program bank 0 flag");
+					crlf();
 					return(1);
 				}
-				program_bank_38SF040(filename, (bank-1)*4);
-				//printf("\n\n");
+				printf("Programming bank %d ...\n",bank);
+				fp=fopen(filename,"r");
+				if (fp==NULL) {
+					printf("Can't open ");
+					println(filename);
+					return 0;
+				}
+				fclose(fp);
+				program_bank_38SF040(filename, bank);
 				return(1);
 			}
 			else {
@@ -303,25 +344,26 @@ int main(int argc,char *argv[]) {
 
 		if (ret == 0) {
             printf("Unsupported device : abort\n");
-			return(1);
+            return(1);
 		}
 
 		if (ret == EEPROM_39SF040) {
-			printf("Eeprom does not support set mode : use -b & -l flag to load one bank\n");
+			println("Eeprom does not support set mode : use -b & -l flag to load one bank");
 			return(1);
 		}
 
+		// At this step only EEPROM_29F040 can be here
+
 		if (strcmp(argv[4],"")==0) {
 			if (ret==2)
-				printf("Missing 16KB file\n");
+				println("Missing 16KB file");
 			else
-				printf("Missing file set of 64KB\n");
+				println("Missing file set of 64KB");
 		}
 
 		if (atoi(argv[3])==4) {
-
 			printf("You have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
-			printf("Would you like to continue y/N (Oric will reboot)?\n");
+			println("Would you like to continue y/N (Oric will reboot)?");
 			mykey=cgetc();
 			if (mykey!='y') return 0;
 		}
@@ -331,9 +373,8 @@ int main(int argc,char *argv[]) {
 			cputsxy(0,0,"Updating kernel ...");
 		}
 		else {
-			printf("Please wait ... \n");
+			println("Please wait ...");
 			printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
-
 		}
 
 		ret=program_sector(argv[4],atoi(argv[3]),1);

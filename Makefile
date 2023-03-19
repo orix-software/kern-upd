@@ -3,7 +3,7 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/eeprom.s src/39SF040/_program_sector_38SF040.s src/39SF040/_erase_sector_39SF040.s  src/39SF040/_sequence_39sf040.s
+LDFILES=src/common/_println.s src/common/_xcrlf.s src/common/_print.s src/eeprom.s src/39SF040/_program_bank_38SF040.s src/39SF040/_erase_sector_39SF040.s src/39SF040/_sequence_39sf040.s src/39SF040/select_bank_39sf040.s src/39SF040/write_byte_39SF040.s
 
 ifeq ($(CC65_HOME),)
         CC = cl65
@@ -17,7 +17,7 @@ else
         AR = $(CC65_HOME)/bin/ar65
 endif
 
-all : init code srccode
+all : init orixcfg srccode
 .PHONY : all
 
 SOURCE=src/$(PROGRAM).c
@@ -25,12 +25,13 @@ SOURCE=src/$(PROGRAM).c
 init: $(SOURCE)
 	./configure
 
-code: $(SOURCE)
-	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) libs/lib8/ch376.lib libs/lib8/twil.lib
+orixcfg: $(SOURCE)
+	echo build orixcfg2
+	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) -l pouet.s --start-addr 0x800 libs/lib8/ch376.lib libs/lib8/twil.lib libs/lib8/pbar.lib
 	#relocation
 	#rm src/eeprom.o
-	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES)  -o 1000 --start-addr 2048 libs/lib8/ch376.lib libs/lib8/twil.lib
-	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES) -o 1256 --start-addr 2304 libs/lib8/ch376.lib libs/lib8/twil.lib
+	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES)  -o 1000 --start-addr 2048 libs/lib8/ch376.lib libs/lib8/twil.lib libs/lib8/pbar.lib
+	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES) -o 1256 --start-addr 2304 libs/lib8/ch376.lib libs/lib8/twil.lib libs/lib8/pbar.lib
 	# Reloc
 	chmod +x dependencies/orix-sdk/bin/relocbin.py3
 	dependencies/orix-sdk/bin/relocbin.py3 -o romupd -2 1000 1256
@@ -45,4 +46,5 @@ srccode: $(SOURCE)
 	cp -adpR src/* build/usr/src/$(PROGRAM)/src/
 	sh docs/builddocs.sh
 
-
+clean:
+	rm -f $(PROGRAM)

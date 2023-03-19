@@ -428,8 +428,7 @@ pos_cputc:
     and     #%11011111
     sta     twilighte_register
 
-    ;lda     #$90
-    ;jsr     sequence
+
 	lda     #$90
 	jsr		sequence_39sf040
 
