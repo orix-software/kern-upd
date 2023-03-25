@@ -6,11 +6,10 @@ mkdir -p ../build/usr/share/man/
 
 PATH_MD2HLP=../md2hlp/src/md2hlp.py3
 
-if command -v md2hlp.py3 &> /dev/null
-then
-PATH_MD2HLP=md2hlp.py3
-
-fi
+# if command -v md2hlp.py3 &> /dev/null
+# then
+# PATH_MD2HLP=md2hlp.py3
+# fi
 
 LIST_COMMAND='romupd orixcfg'
 echo Generate hlp
