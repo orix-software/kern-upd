@@ -15,8 +15,9 @@
 #define EEPROM_29F040  0x01
 #define EEPROM_39SF040 0x02
 
-extern unsigned char program_sector(unsigned char *file, unsigned char sector, unsigned char counterdisplay);
-extern unsigned char program_bank_38SF040(unsigned char *file, unsigned char sector);
+extern unsigned char program_sector_29F040(unsigned char *file, unsigned char sector, unsigned char counterdisplay);
+extern unsigned char program_bank_39SF040(unsigned char *file, unsigned char sector);
+extern unsigned char program_kernel_39SF040(unsigned char *file);
 extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank, unsigned char bank64id);
 extern unsigned int read_eeprom_manufacturer(unsigned char sector);
 extern unsigned char * display_signature_bank(unsigned char sector,unsigned char bank);
@@ -154,32 +155,29 @@ unsigned char getEEPROMId() {
 }
 
 FILE *fp;
-unsigned char header_kernel[20];
+
 unsigned char buffer2[20];
 static unsigned char i=0;
 
 void update_kernel(char *filekernel) {
 	char mkey;
-	unsigned long signature_offset=0;
+	unsigned long signature_offset;
+	unsigned char header_kernel[20];
     fp=fopen(filekernel, "r");
-	// xexec("lsmem");
-	// cgetc();
+
 	if (fp==NULL) {
 		print("Impossible to read : ");
 		println(filekernel);
 		return;
 	}
 
-	//fseek(fp, 0xbc07, SEEK_SET);
 	// Get Signature offset
 	fseek(fp, 0xbff0, SEEK_SET);
-	//printf("Val : %d\n");
 	fread( header_kernel, 1, 15, fp );
 
-	//printf("$%x%x\n",header_kernel[9],header_kernel[8]);
-
-	signature_offset =  (header_kernel[9]-0x40) * 256 +7 - 0xFFFF0000;
+	signature_offset =  (unsigned int)((header_kernel[9]-0x40) * 256) + header_kernel[8];
 	fseek(fp,  signature_offset, SEEK_SET);
+	printf("0x%lx\n",signature_offset);
 	// print Signature
 	fread( buffer2, 1, 15, fp );
 	fclose(fp);
@@ -197,6 +195,22 @@ void update_kernel(char *filekernel) {
 		println("Operation aborted!");
 	}
 
+	mkey = checkEeprom();
+
+	if (mkey == EEPROM_39SF040) {
+		program_kernel_39SF040(filekernel);
+		//println("Eeprom not supported");
+		return;
+	}
+
+
+	if (mkey == 0) {
+        println("Unsupported device : abort");
+        return;
+	}
+
+
+	mkey = program_sector_29F040(filekernel,4,1);
 
 	return;
 }
@@ -215,8 +229,6 @@ int main(int argc,char *argv[]) {
     unsigned char physical_bank;
     unsigned int register_bank;
     unsigned char twil_register;
-
-
 
   	if (argc==1) {
    		usage();
@@ -297,7 +309,7 @@ int main(int argc,char *argv[]) {
 					return 0;
 				}
 				fclose(fp);
-				program_bank_38SF040(filename, bank);
+				program_bank_39SF040(filename, bank);
 				return(1);
 			}
 			else {
@@ -361,7 +373,7 @@ int main(int argc,char *argv[]) {
 				println("Missing file set of 64KB");
 		}
 
-		if (atoi(argv[3])==4) {
+		if (atoi(argv[3]) == 4) {
 			printf("You have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
 			println("Would you like to continue y/N (Oric will reboot)?");
 			mykey=cgetc();
@@ -377,7 +389,7 @@ int main(int argc,char *argv[]) {
 			printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
 		}
 
-		ret=program_sector(argv[4],atoi(argv[3]),1);
+		ret = program_sector_29F040(argv[4],atoi(argv[3]),1);
 
 		if (ret==1) printf("File not found : %s\n",argv[4]);
 			return 0;

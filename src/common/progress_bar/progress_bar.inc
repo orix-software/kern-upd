@@ -1,0 +1,2 @@
+.define PROGRESS_BAR_CART_COUNT 1950
+

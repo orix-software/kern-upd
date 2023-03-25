@@ -1,8 +1,10 @@
 .export _erase_sector_39SF040
 
 .import sequence_39sf040
-.import twilighte_banking_register
 .import select_bank_39sf040
+
+twilighte_banking_register := $343
+twilighte_register         := $342
 
  ; SAX for Sector-Erase; uses AMS-A12 address lines
 .proc _erase_sector_39SF040

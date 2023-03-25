@@ -10,4 +10,3 @@
     BRK_TELEMON XWSTR0
     rts
 .endproc
-

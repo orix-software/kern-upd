@@ -8,10 +8,12 @@
 .import sector_39SF040_banking_register
 .import sector_39SF040_bank
 .import sector_39SF040_adress_high
-.import twilighte_banking_register
 .import bank_to_update
 
 .importzp ptr3
+
+twilighte_banking_register := $343
+twilighte_register         := $342
 
 .proc write_byte_39SF040
 write_loop:
