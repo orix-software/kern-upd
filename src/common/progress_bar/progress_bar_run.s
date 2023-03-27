@@ -77,14 +77,5 @@
 
     rts
 
-; wait:
-;     ; Wait
-;     ldx     #$00
-;     ldy     #$80
-; @L1:
-;     dex
-;     bne     @L1
-;     dey
-;     bne     @L1
-;     rts
+
 .endproc

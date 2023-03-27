@@ -19,7 +19,7 @@ extern unsigned char program_sector_29F040(unsigned char *file, unsigned char se
 extern unsigned char program_bank_39SF040(unsigned char *file, unsigned char sector);
 extern unsigned char program_kernel_39SF040(unsigned char *file);
 extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank, unsigned char bank64id);
-extern unsigned int read_eeprom_manufacturer(unsigned char sector);
+extern unsigned int read_eeprom_manufacturer();
 extern unsigned char * display_signature_bank(unsigned char sector,unsigned char bank);
 
 
@@ -62,7 +62,7 @@ unsigned char checkEeprom() {
     static unsigned int status;
 	unsigned char supported_device = 0;
 
-    status=read_eeprom_manufacturer(0);
+    status = read_eeprom_manufacturer();
     device_code=status>>8;
     manufacturer_code=status&0xFF;
     switch (manufacturer_code) {
@@ -106,7 +106,7 @@ unsigned char getEEPROMId() {
     static unsigned int status;
 	unsigned char supported_device = 0;
 
-    status=read_eeprom_manufacturer(0);
+    status=read_eeprom_manufacturer();
     device_code=status>>8;
     manufacturer_code=status&0xFF;
     print("Manufacturer : ");
@@ -197,18 +197,18 @@ void update_kernel(char *filekernel) {
 
 	mkey = checkEeprom();
 
+	printf("CheckEeprom ret code : %d\n",mkey);
+
 	if (mkey == EEPROM_39SF040) {
 		program_kernel_39SF040(filekernel);
 		//println("Eeprom not supported");
 		return;
 	}
 
-
 	if (mkey == 0) {
         println("Unsupported device : abort");
         return;
 	}
-
 
 	mkey = program_sector_29F040(filekernel,4,1);
 

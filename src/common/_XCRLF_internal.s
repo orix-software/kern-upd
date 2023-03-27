@@ -5,8 +5,9 @@
 .import scrollup
 
 .proc _XCRLF_internal
+
     lda     SCRY
-    cmp     #26
+    cmp     #25
     bne     @no_scroll
 
     jsr     scrollup

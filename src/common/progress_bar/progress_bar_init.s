@@ -42,9 +42,6 @@
     lda     #$00
     sta     progress_bar_current_percentage
 
-    ; lda     #<16384
-    ; lda     #>16384
-
     rts
 
 .endproc

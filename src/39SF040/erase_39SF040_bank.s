@@ -14,7 +14,6 @@
     asl
     asl
 
-
     pha
     ldx     bank_to_update
     jsr     _erase_sector_39SF040

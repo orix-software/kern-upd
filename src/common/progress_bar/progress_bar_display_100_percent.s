@@ -1,8 +1,9 @@
-
 .include "telestrat.inc"
 
 .export progress_bar_display_100_percent
+
 .import posx_progress_bar
+.import _XCRLF_internal
 
 .proc progress_bar_display_100_percent
     ldy     posx_progress_bar
@@ -26,7 +27,7 @@
     iny
     sty     SCRX
 
-    BRK_TELEMON(XCRLF)
+    jsr     _XCRLF_internal
 
     rts
 .endproc

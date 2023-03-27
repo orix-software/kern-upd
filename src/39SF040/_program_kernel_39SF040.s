@@ -10,8 +10,8 @@
 .import bank_to_update
 .import erase_39SF040_bank
 
-.import scrollup
 
+.import _XWRSTR0_internal
 .import _erase_sector_39SF040
 .import _ch376_set_bytes_read
 .import _ch376_wait_response
@@ -26,12 +26,11 @@
 .import pos_cputc
 .import restore_twil_registers
 .import counter_display
-
 .import restore_twil_registers
-
+.import _XCRLF_internal
 .import progress_bar_run
 .import progress_bar_init
-
+.import progress_bar_display_100_percent
 .importzp ptr1,ptr3
 
 .importzp tmp1
@@ -45,14 +44,11 @@ twilighte_register         := $342
     sta     ptr1
     stx     ptr1+1
 
-
     lda     #$05
     sta     bank_to_update
 
     lda     #$00
     sta     pos_cputc
-
-    jsr     progress_bar_init
 
     jsr     save_twil_registers
 
@@ -92,9 +88,23 @@ reset_label:
     rts
 
 @start:
+    lda     bank_to_update
+    sec
+    sbc     #05
+    tax
+    lda     #'A'
+    sta     $bb80,x
+
+    lda     tab_str_low,x
+    ldy     tab_str_high,x
+
+    jsr     _XWRSTR0_internal
+    jsr     _XCRLF_internal
+
+    jsr     progress_bar_init
     ; Erase 4 sectors
     lda     bank_to_update
-    ;jsr     erase_39SF040_bank
+    jsr     erase_39SF040_bank
 
 @skip_line:
     ; Erase
@@ -126,17 +136,14 @@ reset_label:
     sta     tmp1
     ; Tester si userzp == 0?
 
-@skip_line2:
-
 @read_byte:
     lda     CH376_DATA
     pha
-    ;jsr     write_byte_39SF040
+    jsr     write_byte_39SF040
     pla
 
 @display:
     jsr     progress_bar_run
-
 
     lda     ptr3+1
     bne     @skip_change_bank
@@ -152,33 +159,19 @@ reset_label:
     lda     #$C0
     sta     ptr3+1
 
-    ;jsr     progress_bar_display_100_percent
-    ;lda     
-    ; brk     XCRLF
-    ; sei
-    lda     SCRY
-    cmp     #26
-    bne     @no_scroll
-
-    jsr     scrollup
-    jmp     @nocompute_SCRY
-
-@no_scroll:
-    inc     SCRY
-    lda     ADSCR
-    clc
-    adc     #$28
-    bcc     @skip_inc
-    inc     ADSCR+1
-@skip_inc:
-    sta     ADSCR
-
-@nocompute_SCRY:
     lda     #$00
     sta     pos_cputc
 
-    jsr     progress_bar_init
+    jsr     progress_bar_display_100_percent
 
+    lda     bank_to_update
+    sec
+    sbc     #05
+    tax
+    lda     #'B'
+    sta     $bb85,x
+
+;    jsr     _XCRLF_internal
 
     inc     bank_to_update
     lda     bank_to_update
@@ -188,7 +181,7 @@ reset_label:
     jsr     restore_twil_registers
 
 @not_kernel_update:
-
+    jsr     _XCRLF_internal
     lda     #$00
     cli
     rts
@@ -220,7 +213,25 @@ str_slash:
 
 savey:
     .res 1
+str_programming_shell:
+    .asciiz "Programming shell ..."
+str_programming_basic:
+    .asciiz "Programming Basic ..."
+str_programming_kernel:
+    .asciiz "Programming Kernel ..."
+str_programming_kernel_reserved:
+    .asciiz "Programming Kernel reserved..."
 
+tab_str_low:
+    .byt <str_programming_shell
+    .byt <str_programming_basic
+    .byt <str_programming_kernel
+    .byt <str_programming_kernel_reserved
 
+tab_str_high:
+    .byt >str_programming_shell
+    .byt >str_programming_basic
+    .byt >str_programming_kernel
+    .byt >str_programming_kernel_reserved
 .endproc
 

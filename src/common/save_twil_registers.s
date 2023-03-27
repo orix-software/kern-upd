@@ -1,7 +1,5 @@
 .export save_twil_registers
 
-
-
 .include "telestrat.inc"
 
 twilighte_banking_register := $343

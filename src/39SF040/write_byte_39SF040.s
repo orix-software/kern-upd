@@ -32,19 +32,18 @@ write_loop:
     lda     sector_39SF040_banking_register,x
     sta     twilighte_banking_register
 
-
     lda     sector_39SF040_bank,x
     jsr     select_bank_39sf040
 
 
-@skip_line:
     pla
     ldy     #$00
     sta     (ptr3),y
-wait_write:
 
+wait_write:
     cmp     (ptr3),y
     bne     wait_write
+skip_debug:
     inc     ptr3
     bne     @S1
     inc     ptr3+1
