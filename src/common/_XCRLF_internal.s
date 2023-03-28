@@ -7,7 +7,7 @@
 .proc _XCRLF_internal
 
     lda     SCRY
-    cmp     #25
+    cmp     #27
     bne     @no_scroll
 
     jsr     scrollup

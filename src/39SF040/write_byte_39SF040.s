@@ -39,8 +39,12 @@ write_loop:
     pla
     ldy     #$00
     sta     (ptr3),y
-
 wait_write:
+    ; ldx     ptr3
+    ; stx     $6000
+    ; ldx     ptr3+1
+    ; stx     $6001
+    ; sta     $6002
     cmp     (ptr3),y
     bne     wait_write
 skip_debug:

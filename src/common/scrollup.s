@@ -1,7 +1,7 @@
 .export scrollup
 
 .proc scrollup
-    rts
+    ; $F1AE $4C
     ldx     #$00
 @loop_scroll:
     lda     $bb80+80,x
@@ -9,7 +9,7 @@
     inx
     cpx     #240
     bne     @loop_scroll
-    rts
+
     ldx     #$00
 @loop_scroll2:
     lda     $bb80+80+40*6,x
@@ -41,6 +41,14 @@
     inx
     cpx     #120
     bne     @loop_scroll5
+
+    lda     #$00
+    ldx     #$00
+@loop_scroll6:
+    sta     $bb80+40*27,x
+    inx
+    cpx     #80
+    bne     @loop_scroll6
 
 
     rts
