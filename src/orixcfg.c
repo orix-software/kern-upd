@@ -196,8 +196,6 @@ void update_kernel(char *filekernel) {
 
 	mkey = checkEeprom();
 
-
-
 	if (mkey == EEPROM_39SF040) {
 		program_kernel_39SF040(filekernel);
 		//println("Eeprom not supported");
