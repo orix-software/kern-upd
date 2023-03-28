@@ -65,6 +65,8 @@ twilighte_register         := $342
     and     #%11011111
     sta     twilighte_register
 
+    jsr     init_display_for_bank
+
 reset_label:
 
     ldy     #O_RDONLY
@@ -88,25 +90,12 @@ reset_label:
     rts
 
 @start:
-    lda     bank_to_update
-    sec
-    sbc     #05
-    tax
-    lda     #'A'
-    sta     $bb80,x
 
-    lda     tab_str_low,x
-    ldy     tab_str_high,x
-
-    jsr     _XWRSTR0_internal
-    jsr     _XCRLF_internal
-
-    jsr     progress_bar_init
     ; Erase 4 sectors
     lda     bank_to_update
     jsr     erase_39SF040_bank
 
-@skip_line:
+
     ; Erase
 
     lda     #$00
@@ -164,20 +153,19 @@ reset_label:
 
     jsr     progress_bar_display_100_percent
 
-    lda     bank_to_update
-    sec
-    sbc     #05
-    tax
-    lda     #'B'
-    sta     $bb85,x
+
 
 ;    jsr     _XCRLF_internal
 
     inc     bank_to_update
     lda     bank_to_update
     cmp     #$09
-    bne     @start
+    beq     @finished_ok
+    jsr     init_display_for_bank
+    jmp     @skip_change_bank
 
+
+@finished_ok:
     jsr     restore_twil_registers
 
 @not_kernel_update:
@@ -202,14 +190,33 @@ reset_label:
 
 
 @not_kernel_update2:
-    ;jsr     progress_bar_display_100_percent
+    jsr     progress_bar_display_100_percent
     lda     #$00
     cli
-    brk XCRLF
+    ;brk XCRLF
+    rts
+
+init_display_for_bank:
+    lda     bank_to_update
+    sec
+    sbc     #05
+    tax
+    lda     #'A'
+    sta     $bb80,x
+
+    lda     tab_str_low,x
+    ldy     tab_str_high,x
+
+    jsr     _XWRSTR0_internal
+    jsr     _XCRLF_internal
+
+    jsr     progress_bar_init
     rts
 
 str_slash:
     .asciiz "/"
+
+
 
 savey:
     .res 1

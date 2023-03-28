@@ -177,7 +177,6 @@ void update_kernel(char *filekernel) {
 
 	signature_offset =  (unsigned int)((header_kernel[9]-0x40) * 256) + header_kernel[8];
 	fseek(fp,  signature_offset, SEEK_SET);
-	printf("0x%lx\n",signature_offset);
 	// print Signature
 	fread( buffer2, 1, 15, fp );
 	fclose(fp);
@@ -197,7 +196,7 @@ void update_kernel(char *filekernel) {
 
 	mkey = checkEeprom();
 
-	printf("CheckEeprom ret code : %d\n",mkey);
+
 
 	if (mkey == EEPROM_39SF040) {
 		program_kernel_39SF040(filekernel);
