@@ -8,31 +8,28 @@
 .export _program_kernel_39SF040
 
 .import bank_to_update
-.import erase_39SF040_bank
 
-
-.import _XWRSTR0_internal
-.import _erase_sector_39SF040
 .import _ch376_set_bytes_read
 .import _ch376_wait_response
 .import _ch376_set_file_name
 .import _ch376_file_open
+
+.import erase_39SF040_bank
+.import _erase_sector_39SF040
+.import select_bank_39sf040
 .import write_byte_39SF040
-.import _check_flash_protection
-.import value_to_display
-.import pos_bar
+
 .import save_twil_registers
-.import progress_bar
-.import pos_cputc
 .import restore_twil_registers
-.import counter_display
-.import restore_twil_registers
+
+.import _XWRSTR0_internal
 .import _XCRLF_internal
+
 .import progress_bar_run
 .import progress_bar_init
 .import progress_bar_display_100_percent
-.importzp ptr1,ptr3
 
+.importzp ptr1,ptr3
 .importzp tmp1
 
 twilighte_banking_register := $343
@@ -47,8 +44,7 @@ twilighte_register         := $342
     lda     #$05
     sta     bank_to_update
 
-    lda     #$00
-    sta     pos_cputc
+
 
     jsr     save_twil_registers
 
@@ -140,7 +136,6 @@ reset_label:
     lda     ptr3
     bne     @skip_change_bank
 
-    inc     value_to_display
 
     lda     #$00
     sta     ptr3
@@ -148,19 +143,14 @@ reset_label:
     lda     #$C0
     sta     ptr3+1
 
-    lda     #$00
-    sta     pos_cputc
 
     jsr     progress_bar_display_100_percent
 
 
-
-;    jsr     _XCRLF_internal
-
     inc     bank_to_update
-    lda     bank_to_update
-    cmp     #$09
-    beq     @finished_ok
+    ;lda     bank_to_update
+    ;cmp     #$09
+    ;beq     @finished_ok
     ; Erase 4 sectors
     lda     bank_to_update
     jsr     erase_39SF040_bank
@@ -172,7 +162,7 @@ reset_label:
     jsr     restore_twil_registers
 
 @not_kernel_update:
-    jsr     _XCRLF_internal
+
     lda     #$00
     cli
     rts
@@ -194,10 +184,11 @@ reset_label:
 
 @not_kernel_update2:
     jsr     progress_bar_display_100_percent
-    lda     #$00
-    cli
-    brk XCRLF
-    rts
+    ; Rebooting
+    lda     #$07
+    jsr     select_bank_39sf040
+    jmp     ($fffa)
+
 
 init_display_for_bank:
     lda     bank_to_update
