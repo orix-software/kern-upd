@@ -161,6 +161,9 @@ reset_label:
     lda     bank_to_update
     cmp     #$09
     beq     @finished_ok
+    ; Erase 4 sectors
+    lda     bank_to_update
+    jsr     erase_39SF040_bank
     jsr     init_display_for_bank
     jmp     @skip_change_bank
 

@@ -11,14 +11,12 @@
 .import bank_to_update
 
 .importzp ptr3
-
+;$18000
 twilighte_banking_register := $343
 twilighte_register         := $342
 
 .proc write_byte_39SF040
-write_loop:
     pha
-
     lda     #$A0
     jsr     sequence_39sf040
 
@@ -39,22 +37,16 @@ write_loop:
     pla
     ldy     #$00
     sta     (ptr3),y
+
 wait_write:
-    ; ldx     ptr3
-    ; stx     $6000
-    ; ldx     ptr3+1
-    ; stx     $6001
-    ; sta     $6002
     cmp     (ptr3),y
     bne     wait_write
 skip_debug:
     inc     ptr3
     bne     @S1
     inc     ptr3+1
+
 @S1:
-
-@S3:
-
     rts
 
 .endproc
