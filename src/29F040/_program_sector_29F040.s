@@ -4,23 +4,18 @@
 .include "errno.inc"              ; from cc65
 .include "cpu.mac"                ; from cc65
 
-
 .export _program_sector_29F040
 
-.import progress_bar
-.import counter_display
-.import sector_to_update
-.import pos_cputc
-.import posx
-.import pos_bar
+.import popax,popa
+
 .import sector_to_update
 .import current_bank
-.import restore_twil_registers
-.import popax,popa
-.import save_twil_registers
-.import value_to_display
-.import restore_twil_registers
+.import bank_to_update
 
+.import init_display_for_bank
+
+.import save_twil_registers
+.import restore_twil_registers
 
 .import write_byte_29F040
 .import _erase_sector_29F040
@@ -30,10 +25,17 @@
 .import _ch376_set_file_name
 .import _ch376_file_open
 
+.import progress_bar_run
+.import progress_bar_init
+.import progress_bar_display_100_percent
+
+.import _XWRSTR0_internal
+.import _XCRLF_internal
+
 .importzp tmp1
 .import select_bank
 
-.include "../common/progress_bar/progress_bar.inc"
+;.include "../common/progress_bar/progress_bar.inc"
 .include "../../libs/usr/arch/include/ch376.inc"
 
 .importzp ptr1,ptr3
@@ -43,29 +45,34 @@ twilighte_register         := $342
 
 .proc _program_sector_29F040
     sei
-    sta     counter_display
-
-    jsr     popa
     sta     sector_to_update
-
-    lda     #$00
-    sta     pos_cputc
 
     jsr     popax ; Get filepath
     sta     ptr1
     stx     ptr1+1
 
-    lda     #$00
-    sta     posx
+    lda     #$01
+    sta     current_bank
+
     jsr     save_twil_registers
     ; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
-    lda     #$01
-    sta     pos_bar
-    lda     #<PROGRESS_BAR_CART_COUNT
-    sta     progress_bar
-    lda     #>PROGRESS_BAR_CART_COUNT
-    sta     progress_bar+1
 
+    lda     sector_to_update
+    cmp     #$04
+    bne     @not_kernel_update3
+
+    lda     current_bank
+    clc
+    adc     #$04
+    sta     bank_to_update
+    jsr     init_display_for_bank
+
+    jmp     @start_config
+
+@not_kernel_update3:
+    jsr     init_display_for_bank_29F040_normal_sector
+
+@start_config:
     lda     sector_to_update ; pour debug FIXME, cela devrait être à 4
     sta     twilighte_banking_register
 
@@ -73,11 +80,7 @@ twilighte_register         := $342
     and     #%11011111
     sta     twilighte_register
 
-    lda     #$01
-    sta     current_bank
-
 reset_label:
-
     ldy     #O_RDONLY
 
     lda     ptr1
@@ -101,34 +104,13 @@ reset_label:
 
 
 @start:
-    ; display progress bar
-    lda     #'|'
-    sta     $bb80+40
-    sta     $bb80+39+40
-    sta     $bb80+35+40
-    lda     #'%'
-    sta     $bb80+38+40
-    lda     #'0'
-    sta     $bb80+37+40
 
-    lda     counter_display
-    bne     @skip_line
-
-    lda     #' '
-    ldx     #$00
-@L5:
-    sta     $bb80+25*40,x
-    inx
-    cpx     #40*3
-    bne     @L5
 
 @skip_line:
     ; Erase
     lda     sector_to_update
     sta     twilighte_banking_register
 
-    lda     #'1'
-    sta     value_to_display
 
     lda     #$00
     sta     ptr3
@@ -155,30 +137,15 @@ reset_label:
     sta     CH376_COMMAND
     lda     CH376_DATA
     sta     tmp1
-    ; Tester si userzp == 0?
-
-    lda     counter_display
-    bne     @skip_line2
-
-    lda     current_bank
-    clc
-    adc     #$30
-    sta     $bb80+25*40+21
-@skip_line2:
 
 @read_byte:
-
+    jsr     progress_bar_run
     lda     CH376_DATA
     pha
     jsr     write_byte_29F040
     pla
 
-    lda     value_to_display
-@display:
-    ldx     posx
-
-    inx
-    stx     posx
+    jsr     progress_bar_run
 
     lda     ptr3+1
     bne     @skip_change_bank
@@ -186,29 +153,47 @@ reset_label:
     lda     ptr3
     bne     @skip_change_bank
 
-    inc     value_to_display
-
     lda     #$00
     sta     ptr3
 
     lda     #$C0
     sta     ptr3+1
 
+    jsr     progress_bar_display_100_percent
+
     ldx     current_bank
     inx
     stx     current_bank
-    cpx     #$05
+
+    lda     sector_to_update
+    cmp     #$04
+    beq     @displays_kernel_set
+
+    jsr     init_display_for_bank_29F040_normal_sector
+    jmp     @compare_bank
+@displays_kernel_set:
+    inc     bank_to_update
+    jsr     init_display_for_bank
+
+@compare_bank:
+    lda     current_bank
+    cmp     #$05
     bne     @skip_change_bank
     ; end we stop
+
+    jsr     progress_bar_display_100_percent
 
     jsr     restore_twil_registers
     lda     sector_to_update
     cmp     #$04
     bne     @not_kernel_update
+
+
     ; Reset now
     lda     #$07
     jsr     select_bank
     jmp     ($fffa)
+
 @not_kernel_update:
     lda     #$00
     cli
@@ -228,12 +213,11 @@ reset_label:
  @finished:
 
     jsr     restore_twil_registers
-
+    jsr     progress_bar_display_100_percent
     lda     sector_to_update
     cmp     #$04
     bne     @not_kernel_update2
-    lda     #$11
-    sta     $bb80
+
     ; Reset now
     lda     #$07
     jsr     select_bank
@@ -246,8 +230,18 @@ reset_label:
 
 str_slash:
     .asciiz "/"
-posx:
-    .res 1
-savey:
-    .res 1
+.endproc
+
+.proc init_display_for_bank_29F040_normal_sector
+
+    lda     #<str_programming_bank
+    ldy     #>str_programming_bank
+
+    jsr     _XWRSTR0_internal
+    jsr     _XCRLF_internal
+
+    jsr     progress_bar_init
+    rts
+str_programming_bank:
+    .asciiz "Programming bank ..."
 .endproc

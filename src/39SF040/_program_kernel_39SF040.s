@@ -7,6 +7,8 @@
 
 .export _program_kernel_39SF040
 
+.export init_display_for_bank
+
 .import bank_to_update
 
 .import _ch376_set_bytes_read
@@ -32,6 +34,15 @@
 .importzp ptr1,ptr3
 .importzp tmp1
 
+.export str_programming_shell
+.export str_programming_basic
+.export str_programming_kernel
+.export str_programming_kernel_reserved
+
+.export tab_str_low
+.export tab_str_high
+
+
 twilighte_banking_register := $343
 twilighte_register         := $342
 
@@ -43,8 +54,6 @@ twilighte_register         := $342
 
     lda     #$05
     sta     bank_to_update
-
-
 
     jsr     save_twil_registers
 
@@ -90,7 +99,6 @@ reset_label:
     ; Erase 4 sectors
     lda     bank_to_update
     jsr     erase_39SF040_bank
-
 
     ; Erase
 
@@ -143,14 +151,10 @@ reset_label:
     lda     #$C0
     sta     ptr3+1
 
-
     jsr     progress_bar_display_100_percent
 
-
     inc     bank_to_update
-    ;lda     bank_to_update
-    ;cmp     #$09
-    ;beq     @finished_ok
+
     ; Erase 4 sectors
     lda     bank_to_update
     jsr     erase_39SF040_bank
@@ -181,7 +185,6 @@ reset_label:
  @finished:
     jsr     restore_twil_registers
 
-
 @not_kernel_update2:
     jsr     progress_bar_display_100_percent
     ; Rebooting
@@ -189,8 +192,14 @@ reset_label:
     jsr     select_bank_39sf040
     jmp     ($fffa)
 
+str_slash:
+    .asciiz "/"
 
-init_display_for_bank:
+savey:
+    .res 1
+.endproc
+
+.proc init_display_for_bank
     lda     bank_to_update
     sec
     sbc     #05
@@ -204,12 +213,8 @@ init_display_for_bank:
 
     jsr     progress_bar_init
     rts
+.endproc
 
-str_slash:
-    .asciiz "/"
-
-savey:
-    .res 1
 str_programming_shell:
     .asciiz "Programming shell ..."
 str_programming_basic:
@@ -230,5 +235,3 @@ tab_str_high:
     .byt >str_programming_basic
     .byt >str_programming_kernel
     .byt >str_programming_kernel_reserved
-.endproc
-

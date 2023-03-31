@@ -28,11 +28,10 @@
     lda     #'%'
     sta     (ADSCR),y
 
-
-    lda     #<512
+    lda     #<1024
     sta     number_of_values_needed_for_inc_progress_bar
     sta     progress_bar_counter
-    lda     #>512
+    lda     #>1024
     sta     number_of_values_needed_for_inc_progress_bar+1
     sta     progress_bar_counter+1
 

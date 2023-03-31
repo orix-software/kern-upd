@@ -8,7 +8,7 @@ When a new released is done, you can update the eeprom with the new kernel and n
 
 If you want to know if you need to update the kernel, you can compare your current version, and the last release version. You can go to [http://orix.oric.org](http://orix.oric.org/)
 
-The sequence of the Orix release is 'YYYY.X' (Year + release in the year). There is 4 releases a year, and each one must be done until you reach the final one, in order to avoid some case. If your version is v2020.3 and the last available version is v2021.4. You need to update to v2020.4, then v2021.1, v2021.2, v2021.3, v2021.4, v2022.1, v2022.4.
+The sequence of the Orix release is 'YYYY.X' (Year + release in the year). There is 4 releases a year, and each one must be done until you reach the final one, in order to avoid some case. If your version is v2020.3 and the last available version is v2023.1. You need to update to v2020.4, then v2021.1, v2021.2, v2021.3, v2021.4, v2022.1, v2022.4 and v2023.1.
 
 It's maybe possible to jump to version v2022.3, but it's at your own risk because there is a "chance" that some kernel calls changed, and orixcfg could do wrong step.
 
@@ -24,9 +24,13 @@ This next command will load kernel.r64 to kernel set. Please wait until Orix reb
 
 Please note that we provide 2 kernels version. One named "kernelsd.r64" which means that the default device will be sdcard, and the other one "kernelus.r64" which means that default device will be "usb" (usbkey). If you load the wrong kernel at this step, you can use twil command to switch to the right device, and you can start again kernel update with the right file (kernelsd.r64 or kernelus.r64 depending of your configuration).
 
+## Update kernel
+
 ```code
-orixcfg -r -s 4 kernelsd.r64
+orixcfg -k kernelsd.r64
 ```
+
+"orixcfg -r -s 4 file.r64" is no longer supported for kernel update. -k flag only will manage kernel .r64 files. -k flag verify if file pased on command line is correct or not for kernel.
 
 ## Load a ROM into a ram slot
 

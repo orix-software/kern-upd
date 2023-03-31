@@ -1,8 +1,6 @@
-Github action
+# Tools orixcfg and romupd
 
 [![build](https://github.com/orix-software/orixcfg/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/orix-software/orixcfg/actions/workflows/main.yml)
-
-# Tools orixcfg and romupd
 
 ## orixcfg
 

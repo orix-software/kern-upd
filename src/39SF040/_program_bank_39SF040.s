@@ -7,20 +7,16 @@
 
 .export _program_bank_39SF040
 
-.import _erase_sector_39SF040
 .import _ch376_set_bytes_read
 .import _ch376_wait_response
 .import _ch376_set_file_name
 .import _ch376_file_open
+
 .import write_byte_39SF040
-.import _check_flash_protection
-.import value_to_display
-.import pos_bar
+.import _erase_sector_39SF040
+
 .import save_twil_registers
-.import progress_bar
-.import pos_cputc
 .import restore_twil_registers
-.import counter_display
 
 .import bank_to_update
 .import erase_39SF040_bank
@@ -42,8 +38,6 @@ twilighte_register         := $342
 
     sta     bank_to_update
 
-    lda     #$00
-    sta     pos_cputc
 
     jsr     popax ; Get file
     sta     ptr1
@@ -141,7 +135,7 @@ reset_label:
     lda     ptr3
     bne     @skip_change_bank
 
-    inc     value_to_display
+    ;inc     value_to_display
 
     lda     #$00
     sta     ptr3

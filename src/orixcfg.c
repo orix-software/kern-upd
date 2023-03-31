@@ -6,16 +6,15 @@
 
 #include <errno.h>
 #include <unistd.h>
-//#include "_file.h"
 
 #include "twil.h"
 
-#define VERSION "v2023.X"
+#define VERSION "v2023.2"
 
 #define EEPROM_29F040  0x01
 #define EEPROM_39SF040 0x02
 
-extern unsigned char program_sector_29F040(unsigned char *file, unsigned char sector, unsigned char counterdisplay);
+extern unsigned char program_sector_29F040(unsigned char *file, unsigned char sector);
 extern unsigned char program_bank_39SF040(unsigned char *file, unsigned char sector);
 extern unsigned char program_kernel_39SF040(unsigned char *file);
 extern unsigned char program_bank_ram(unsigned char *file, unsigned char idbank, unsigned char bank64id);
@@ -28,18 +27,17 @@ extern void crlf();
 extern void print(char *string);
 extern void println(char *string);
 
-#define MAX_SLOT 4
-#define MAX_LENGTH_OF_PATH 50
-
-unsigned char current_set=0;
-
 FILE *fp;
+
+unsigned char buffer2[20];
+static unsigned char i=0;
 
 void usage() {
   println("usage:");
   println("orixcfg -i : displays info");
   println("orixcfg -v : displays version");
   println("orixcfg -h : displays help");
+  println("orixcfg -k file.r64 : Update kernel with file.r64");
   println("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X");
   println("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y");
   println("orixcfg -w -f : Clear all rams");
@@ -49,8 +47,7 @@ void usage() {
 }
 
 void version() {
-    printf(VERSION);
-	printf("\n");
+    println(VERSION);
 }
 
 unsigned char checkEeprom() {
@@ -154,10 +151,7 @@ unsigned char getEEPROMId() {
     return supported_device;
 }
 
-FILE *fp;
 
-unsigned char buffer2[20];
-static unsigned char i=0;
 
 void update_kernel(char *filekernel) {
 	char mkey;
@@ -192,13 +186,13 @@ void update_kernel(char *filekernel) {
 	mkey = cgetc();
 	if (mkey!='y') {
 		println("Operation aborted!");
+		return;
 	}
 
 	mkey = checkEeprom();
 
 	if (mkey == EEPROM_39SF040) {
 		program_kernel_39SF040(filekernel);
-		//println("Eeprom not supported");
 		return;
 	}
 
@@ -207,7 +201,7 @@ void update_kernel(char *filekernel) {
         return;
 	}
 
-	mkey = program_sector_29F040(filekernel,4,1);
+	mkey = program_sector_29F040(filekernel,4);
 
 	return;
 }
@@ -294,14 +288,13 @@ int main(int argc,char *argv[]) {
 					return(1);
 				}
 				if (bank == 0) {
-					print("Can not program bank 0 flag");
-					crlf();
+					println("Can not program bank 0 flag");
 					return(1);
 				}
 				printf("Programming bank %d ...\n",bank);
 				fp=fopen(filename,"r");
 				if (fp==NULL) {
-					printf("Can't open ");
+					print("Can't open :");
 					println(filename);
 					return 0;
 				}
@@ -318,7 +311,6 @@ int main(int argc,char *argv[]) {
 
 	// Flush all
 	if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-f")==0) {
-		//twil_clear_rambank(unsigned char bank, unsigned char set);
 		for (j=0;j<8;j++)
 			for (i=1;i<5;i++) {
 				bank=twil_get_id_bank(i,j);
@@ -341,7 +333,7 @@ int main(int argc,char *argv[]) {
 	if (strcmp(argv[1],"-w")==0 && strcmp(argv[2],"-s")==0 && strcmp(argv[4],"-b")==0 )  {
 		printf("Loading : %s into set %s, bank %s in ram\n",argv[6],argv[3],argv[5]);
 		ret=twil_program_rambank(atoi(argv[5]), argv[6], atoi(argv[3]));
-		if (ret==1) printf("File not found\n");
+		if (ret==1) println("File not found");
     	return 0;
 	}
 
@@ -362,7 +354,6 @@ int main(int argc,char *argv[]) {
 		}
 
 		// At this step only EEPROM_29F040 can be here
-
 		if (strcmp(argv[4],"")==0) {
 			if (ret==2)
 				println("Missing 16KB file");
@@ -371,25 +362,23 @@ int main(int argc,char *argv[]) {
 		}
 
 		if (atoi(argv[3]) == 4) {
-			printf("You have selected kernel set, if you press 'y', it will update the kernel with %s\n",argv[4]);
-			println("Would you like to continue y/N (Oric will reboot)?");
-			mykey=cgetc();
-			if (mykey!='y') return 0;
+			println("Deprecated use -k flag instead for kernel update");
+			return 1;
 		}
 
-		if (atoi(argv[3]) ==4 )  {
-			clrscr();
-			cputsxy(0,0,"Updating kernel ...");
-		}
-		else {
-			println("Please wait ...");
-			printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
+		if (atoi(argv[3]) > 7) {
+			println("Set can not be greater than 7");
+			return 1;
 		}
 
-		ret = program_sector_29F040(argv[4],atoi(argv[3]),1);
+		println("Please wait ...");
+		printf("Loading : %s into set %s of rom\n",argv[4],argv[3]);
+
+		ret = program_sector_29F040(argv[4],atoi(argv[3]));
 
 		if (ret==1) printf("File not found : %s\n",argv[4]);
 			return 0;
+		crlf();
   	}
-    printf("Wrong parameters\n");
+    println("Wrong parameters");
 }
