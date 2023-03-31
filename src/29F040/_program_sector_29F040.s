@@ -225,6 +225,8 @@ reset_label:
 
 @not_kernel_update2:
     lda     #$00
+    sta     SCRX
+    lda     #$00
     cli
     rts
 

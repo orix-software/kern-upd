@@ -378,7 +378,7 @@ int main(int argc,char *argv[]) {
 
 		if (ret==1) printf("File not found : %s\n",argv[4]);
 			return 0;
-		crlf();
+
   	}
     println("Wrong parameters");
 }

@@ -165,6 +165,7 @@ reset_label:
 @finished_ok:
     jsr     restore_twil_registers
 
+
 @not_kernel_update:
 
     lda     #$00
