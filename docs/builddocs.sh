@@ -11,7 +11,7 @@ PATH_MD2HLP=../md2hlp/src/md2hlp.py3
 # PATH_MD2HLP=md2hlp.py3
 # fi
 
-LIST_COMMAND='romupd orixcfg'
+LIST_COMMAND='bankupd orixcfg'
 echo Generate hlp
 for I in $LIST_COMMAND; do
 echo Generate $I
