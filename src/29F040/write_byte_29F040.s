@@ -34,12 +34,6 @@ twilighte_register         := $342
     lda     counter_display
     bne     @skip_line
 
-    ; lda     #'#'
-    ; jsr     _cputc_custom
-
-    ; lda     ptr3
-    ; ldx     ptr3+1
-    ; jsr     _cputhex16_custom
 
 @skip_line:
     pla
@@ -51,34 +45,7 @@ wait_write:
     inc     ptr3
     bne     @S1
     inc     ptr3+1
+
 @S1:
-    ; lda     progress_bar
-    ; bne     @again
-    ; dec     progress_bar+1
-
-@again:
-    ; dec     progress_bar
-
-    ; lda     progress_bar+1
-    ; bne     @S3
-
-    ; lda     progress_bar
-    ; bne     @S3
-
-    ; ldx     pos_bar
-    ; lda     #'='
-    ; sta     $bb80+40,x
-    ; inc     pos_bar
-
-    ; lda     #<PROGRESS_BAR_CART_COUNT
-    ; sta     progress_bar
-    ; lda     #>PROGRESS_BAR_CART_COUNT
-    ; sta     progress_bar+1
-
-    ; jsr     inc_progress_bar
-    ; jsr     inc_progress_bar
-    ; jsr     inc_progress_bar
-@S3:
-
     rts
 .endproc

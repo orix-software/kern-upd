@@ -337,7 +337,7 @@ int main(int argc,char *argv[]) {
     	return 0;
 	}
 
-	/* Program kernel or set (for 29F040)*/
+	/* Program set (for 29F040)*/
 
 	if (strcmp(argv[1],"-r")==0 && strcmp(argv[2],"-s")==0) {
 
