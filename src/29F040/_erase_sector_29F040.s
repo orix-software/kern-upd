@@ -21,6 +21,7 @@
 
     lda     #$30
     sta     $C000
+
 wait_erase:
     bit     $C000
     bpl     wait_erase

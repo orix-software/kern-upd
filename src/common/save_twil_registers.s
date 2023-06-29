@@ -20,4 +20,3 @@ twilighte_register         := $342
     sta     twilighte_register_save
     rts
 .endproc
-

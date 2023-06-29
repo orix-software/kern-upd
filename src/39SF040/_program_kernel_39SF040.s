@@ -34,14 +34,13 @@
 .importzp ptr1,ptr3
 .importzp tmp1
 
-.export str_programming_shell
-.export str_programming_basic
-.export str_programming_kernel
-.export str_programming_kernel_reserved
+.import str_programming_shell
+.import str_programming_basic
+.import str_programming_kernel
+.import str_programming_kernel_reserved
 
-.export tab_str_low
-.export tab_str_high
-
+.import tab_str_low
+.import tab_str_high
 
 twilighte_banking_register := $343
 twilighte_register         := $342
@@ -215,24 +214,3 @@ savey:
     jsr     progress_bar_init
     rts
 .endproc
-
-str_programming_shell:
-    .asciiz "Programming shell ..."
-str_programming_basic:
-    .asciiz "Programming Basic ..."
-str_programming_kernel:
-    .asciiz "Programming Kernel ..."
-str_programming_kernel_reserved:
-    .asciiz "Programming Kernel reserved..."
-
-tab_str_low:
-    .byt <str_programming_shell
-    .byt <str_programming_basic
-    .byt <str_programming_kernel
-    .byt <str_programming_kernel_reserved
-
-tab_str_high:
-    .byt >str_programming_shell
-    .byt >str_programming_basic
-    .byt >str_programming_kernel
-    .byt >str_programming_kernel_reserved

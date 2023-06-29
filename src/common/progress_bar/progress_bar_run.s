@@ -76,6 +76,4 @@
     dec     progress_bar_counter
 
     rts
-
-
 .endproc

@@ -3,7 +3,7 @@ CC=cl65
 CFLAGS=-ttelestrat
 LDFILES=
 PROGRAM=orixcfg
-LDFILES=src/common/_println.s src/common/_XWRSTR0_internal.s src/common/progress_bar/progress_bar_run.s src/common/_xcrlf.s src/29F040/sequence_29F040.s src/39SF040/erase_39SF040_bank.s src/common/_print.s src/common/_read_eeprom_manufacturer.s src/common/scrollup.s src/common/save_twil_registers.s src/common/restore_twil_registers.s src/common/progress_bar/progress_bar_init.s src/common/_XCRLF_internal.s src/29F040/_program_sector_29F040.s src/common/progress_bar/progress_bar_display_100_percent.s src/29F040/_erase_sector_29F040.s src/common/progress_bar/vars.s src/common/progress_bar/inc_progress_bar.s src/29F040/write_byte_29F040.s src/29F040/select_bank.s src/39SF040/_program_bank_39SF040.s src/39SF040/_erase_sector_39SF040.s src/common/vars.s src/39SF040/_sequence_39sf040.s src/39SF040/select_bank_39sf040.s src/39SF040/write_byte_39SF040.s src/39SF040/_program_kernel_39SF040.s
+LDFILES=src/common/strings.s src/common/_println.s src/common/_XWRSTR0_internal.s src/common/progress_bar/progress_bar_run.s src/common/_xcrlf.s src/29F040/sequence_29F040.s src/39SF040/erase_39SF040_bank.s src/common/_print.s src/common/_read_eeprom_manufacturer.s src/common/scrollup.s src/common/save_twil_registers.s src/common/restore_twil_registers.s src/common/progress_bar/progress_bar_init.s src/common/_XCRLF_internal.s src/29F040/_program_sector_29F040.s src/common/progress_bar/progress_bar_display_100_percent.s src/29F040/_erase_sector_29F040.s src/common/progress_bar/vars.s src/common/progress_bar/inc_progress_bar.s src/29F040/write_byte_29F040.s src/29F040/select_bank.s src/39SF040/_program_bank_39SF040.s src/39SF040/_erase_sector_39SF040.s src/common/vars.s src/39SF040/_sequence_39sf040.s src/39SF040/select_bank_39sf040.s src/39SF040/write_byte_39SF040.s src/39SF040/_program_kernel_39SF040.s
 
 ifeq ($(CC65_HOME),)
         CC = cl65
@@ -21,6 +21,7 @@ all : init orixcfg srccode
 .PHONY : all
 
 SOURCE=src/$(PROGRAM).c
+SOURCE_BANKUPD=src/bankupd.c
 
 init: $(SOURCE)
 	./configure
@@ -30,8 +31,8 @@ orixcfg: $(SOURCE)
 	$(CC) -I libs/usr/include/ $(CFLAGS)  $(SOURCE) $(LDFILES) -o $(PROGRAM) --start-addr 0x800 libs/lib8/ch376.lib libs/lib8/twil.lib
 	#relocation
 	#rm src/eeprom.o
-	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES)  -o 1000 --start-addr 2048 libs/lib8/ch376.lib libs/lib8/twil.lib
-	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE) $(LDFILES) -o 1256 --start-addr 2304 libs/lib8/ch376.lib libs/lib8/twil.lib
+	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE_BANKUPD) $(LDFILES) -o 1000 --start-addr 2048 libs/lib8/ch376.lib libs/lib8/twil.lib
+	$(CC) -I libs/usr/include/ $(CFLAGS) $(SOURCE_BANKUPD) $(LDFILES) -o 1256 --start-addr 2304 libs/lib8/ch376.lib libs/lib8/twil.lib
 	# Reloc
 	chmod +x dependencies/orix-sdk/bin/relocbin.py3
 	dependencies/orix-sdk/bin/relocbin.py3 -o bankupd -2 1000 1256
@@ -41,7 +42,7 @@ srccode: $(SOURCE)
 	mkdir -p build/usr/src/$(PROGRAM)/src/
 	mkdir -p build/bin
 	cp $(PROGRAM)  build/bin/
-	cp romupd  build/bin/
+	cp bankupd  build/bin/
 	cp README.md build/usr/src/$(PROGRAM)/
 	cp -adpR src/* build/usr/src/$(PROGRAM)/src/
 	sh docs/builddocs.sh
