@@ -7,7 +7,7 @@
 .export tab_str_high
 
 str_programming_shell:
-    .asciiz "Programming shell ..."
+    .asciiz "Programming Shell ..."
 str_programming_basic:
     .asciiz "Programming Basic ..."
 str_programming_kernel:

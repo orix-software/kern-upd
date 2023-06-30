@@ -34,14 +34,14 @@ static unsigned char i=0;
 
 void usage() {
     println("usage:");
-    println("orixcfg -i : displays info");
-    println("orixcfg -v : displays version");
-    println("orixcfg -h : displays help");
-    println("orixcfg -k file.r64 : Update kernel with file.r64");
-    println("orixcfg -r -s X romfile64KB.r64 : Load romfile into set X");
-    println("orixcfg -w -s X -b Y -c : Clear RAM in set X and bank Y");
-    println("orixcfg -w -f : Clear all rams");
-    println("orixcfg -b XX -l file : Load file into XX bank");
+    println("bankupd -i : displays info");
+    println("bankupd -v : displays version");
+    println("bankupd -h : displays help");
+    println("bankupd -k file.r64 : Update kernel with file.r64");
+    println("bankupd -r -s X romfile64KB.r64 : Load romfile into set X");
+    println("bankupd -w -s X -b Y -c : Clear RAM in set X and bank Y");
+    println("bankupd -w -f : Clear all rams");
+    println("bankupd -b XX -l file : Load file into XX bank");
     return;
 }
 

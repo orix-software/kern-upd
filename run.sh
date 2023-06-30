@@ -5,6 +5,6 @@ cl65 -I libs/usr/include/ -ttelestrat --start-addr 0x800 src/common/strings.s sr
 cp orixcfg $ORICUTRON_PATH/sdcard/bin/
 
 cd $ORICUTRON_PATH
-#./oricutron
+./oricutron
 cd -
 

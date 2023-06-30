@@ -35,7 +35,14 @@
 .importzp tmp1
 .import select_bank
 
-;.include "../common/progress_bar/progress_bar.inc"
+.import str_programming_shell
+.import str_programming_basic
+.import str_programming_kernel
+.import str_programming_kernel_reserved
+
+.import tab_str_low
+.import tab_str_high
+
 .include "../../libs/usr/arch/include/ch376.inc"
 
 .importzp ptr1,ptr3
@@ -61,10 +68,17 @@ twilighte_register         := $342
     cmp     #$04
     bne     @not_kernel_update3
 
+    ; bank_to_update
+
     lda     current_bank
     clc
     adc     #$04
     sta     bank_to_update
+
+
+
+
+
     jsr     init_display_for_bank
 
     jmp     @start_config
@@ -102,15 +116,12 @@ reset_label:
     cli
     rts
 
-
 @start:
-
 
 @skip_line:
     ; Erase
     lda     sector_to_update
     sta     twilighte_banking_register
-
 
     lda     #$00
     sta     ptr3
@@ -171,6 +182,7 @@ reset_label:
 
     jsr     init_display_for_bank_29F040_normal_sector
     jmp     @compare_bank
+
 @displays_kernel_set:
     inc     bank_to_update
     jsr     init_display_for_bank

@@ -197,6 +197,7 @@ str_slash:
 
 savey:
     .res 1
+
 .endproc
 
 .proc init_display_for_bank
@@ -209,8 +210,37 @@ savey:
     ldy     tab_str_high,x
 
     jsr     _XWRSTR0_internal
+
     jsr     _XCRLF_internal
 
     jsr     progress_bar_init
+    rts
+.endproc
+
+
+.proc wait
+    ldy     #$00
+    ldx     #$00
+@me:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    dex
+    bne     @me
+    dey
+    bne     @me
     rts
 .endproc
