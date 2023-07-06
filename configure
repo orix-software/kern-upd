@@ -8,3 +8,6 @@ curl --insecure -o libs/twillib.tgz http://repo.orix.oric.org/dists/2021.3/tgz/6
 cd libs/ && tar xvfz twillib.tgz && cd ..
 rm libs/twillib.tgz
 
+curl --insecure -o libs/pbar-lib.tgz http://repo.orix.oric.org/dists/2023.1/tgz/6502/pbar-lib.tgz
+cd libs/ && tar xvfz pbar-lib.tgz && cd ..
+rm libs/pbar-lib.tgz
